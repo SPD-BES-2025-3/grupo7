@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.grupo7.petshop.controller.AgendamentoController"
+            prefHeight="600.0" prefWidth="800.0">
+    
+    <top>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            <Label text="Gestão de Agendamentos" style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+            
+            <!-- Formulário -->
+            <VBox styleClass="form-container" spacing="15" 
+                   style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);">
+                <padding>
+                    <Insets top="20" right="20" bottom="20" left="20"/>
+                </padding>
+                
+                <GridPane hgap="15" vgap="10">
+                    <Label text="Cliente:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <ComboBox fx:id="cmbCliente" promptText="Selecione o cliente" GridPane.columnIndex="1" GridPane.rowIndex="0" prefWidth="300"/>
+                    
+                    <Label text="Pet:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <ComboBox fx:id="cmbPet" promptText="Selecione o pet" GridPane.columnIndex="1" GridPane.rowIndex="1" prefWidth="300"/>
+                    
+                    <Label text="Serviço:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <ComboBox fx:id="cmbServico" promptText="Selecione o serviço" GridPane.columnIndex="1" GridPane.rowIndex="2" prefWidth="300"/>
+                    
+                    <Label text="Data:" GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+                    <DatePicker fx:id="dpData" promptText="Data do agendamento" GridPane.columnIndex="1" GridPane.rowIndex="3" prefWidth="300"/>
+                    
+                    <Label text="Hora:" GridPane.columnIndex="0" GridPane.rowIndex="4"/>
+                    <ComboBox fx:id="cmbHora" promptText="Selecione a hora" GridPane.columnIndex="1" GridPane.rowIndex="4" prefWidth="300"/>
+                    
+                    <Label text="Valor:" GridPane.columnIndex="0" GridPane.rowIndex="5"/>
+                    <TextField fx:id="txtValor" promptText="0.00" GridPane.columnIndex="1" GridPane.rowIndex="5" prefWidth="300"/>
+                    
+                    <Label text="Status:" GridPane.columnIndex="0" GridPane.rowIndex="6"/>
+                    <ComboBox fx:id="cmbStatus" promptText="Selecione o status" GridPane.columnIndex="1" GridPane.rowIndex="6" prefWidth="300"/>
+                    
+                    <Label text="Observações:" GridPane.columnIndex="0" GridPane.rowIndex="7"/>
+                    <TextArea fx:id="txtObservacoes" promptText="Observações sobre o agendamento" 
+                              GridPane.columnIndex="1" GridPane.rowIndex="7" prefWidth="300" prefHeight="80"/>
+                </GridPane>
+                
+                <HBox spacing="10" alignment="CENTER">
+                    <Button text="Salvar" styleClass="btn-primary" onAction="#salvarAgendamento" prefWidth="120"/>
+                    <Button text="Limpar" styleClass="btn-secondary" onAction="#limparFormulario" prefWidth="120"/>
+                    <Button text="Excluir" styleClass="btn-danger" onAction="#excluirAgendamento" prefWidth="120"/>
+                    <Button text="Confirmar" styleClass="btn-success" onAction="#confirmarAgendamento" prefWidth="120"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </top>
+    
+    <center>
+        <VBox spacing="10">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            <!-- Filtros -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="Filtrar por:"/>
+                <DatePicker fx:id="dpFiltroData" promptText="Data" onAction="#filtrarAgendamentos"/>
+                <ComboBox fx:id="cmbFiltroStatus" promptText="Status" onAction="#filtrarAgendamentos"/>
+                <Button text="Limpar Filtros" styleClass="btn-secondary" onAction="#limparFiltros"/>
+            </HBox>
+            
+            <!-- Tabela de Agendamentos -->
+            <TableView fx:id="tabelaAgendamentos" VBox.vgrow="ALWAYS">
+                <columns>
+                    <TableColumn text="Cliente" fx:id="colCliente" prefWidth="150"/>
+                    <TableColumn text="Pet" fx:id="colPet" prefWidth="100"/>
+                    <TableColumn text="Serviço" fx:id="colServico" prefWidth="120"/>
+                    <TableColumn text="Data/Hora" fx:id="colDataHora" prefWidth="150"/>
+                    <TableColumn text="Valor" fx:id="colValor" prefWidth="100"/>
+                    <TableColumn text="Status" fx:id="colStatus" prefWidth="100"/>
+                </columns>
+            </TableView>
+        </VBox>
+    </center>
+    
+</BorderPane> 
