@@ -1,4 +1,4 @@
-# 📦 Sistema de Funcionários - Relatório Individual
+# 📦 Sistema de PETSHOP - Relatório Individual
 
 **Mário Ferro**
 Relatório individual referente à **primeira entrega** do projeto.
