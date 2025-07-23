@@ -7,7 +7,7 @@ Relatório individual referente à **primeira entrega** do projeto.
 
 ## 🧩 Funcionalidades Implementadas
 
-**Commit(s) principais:** `[9e251c4](https://github.com/SPD-BES-2025-3/grupo7/commit/9e251c4eb6e166b1be5f5bf4a304a576340d4ccb)`, `[d04c229](https://github.com/SPD-BES-2025-3/grupo7/commit/d04c229ef76e85473e3b963546fb04f15610734e)`
+**Commit(s) principais:** [`9e251c4`](https://github.com/SPD-BES-2025-3/grupo7/commit/9e251c4eb6e166b1be5f5bf4a304a576340d4ccb), [`d04c229`](https://github.com/SPD-BES-2025-3/grupo7/commit/d04c229ef76e85473e3b963546fb04f15610734e)
 
 * Desenvolvimento completo das **interfaces gráficas** utilizando **JavaFX** e **FXML**, incluindo:
 
