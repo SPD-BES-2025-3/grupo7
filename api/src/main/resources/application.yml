@@ -7,6 +7,9 @@ spring:
       port: 27017
       database: grupo7db
       auto-index-creation: true
+      username: root
+      password: example
+      authentication-database: admin
   jackson:
     default-property-inclusion: non_null
     serialization:
