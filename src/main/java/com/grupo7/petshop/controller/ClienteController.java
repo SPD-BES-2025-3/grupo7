@@ -3,6 +3,14 @@ package com.grupo7.petshop.controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.URI;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import com.grupo7.petshop.model.Cliente;
+import javafx.scene.control.cell.PropertyValueFactory;
 
 public class ClienteController {
     
@@ -31,44 +39,93 @@ public class ClienteController {
     private TextField txtPesquisa;
     
     @FXML
-    private TableView<?> tabelaClientes;
+    private TableView<Cliente> tabelaClientes;
     
     @FXML
-    private TableColumn<?, ?> colNome;
+    private TableColumn<Cliente, String> colNome;
     
     @FXML
-    private TableColumn<?, ?> colEmail;
+    private TableColumn<Cliente, String> colEmail;
     
     @FXML
-    private TableColumn<?, ?> colTelefone;
+    private TableColumn<Cliente, String> colTelefone;
     
     @FXML
-    private TableColumn<?, ?> colCpf;
+    private TableColumn<Cliente, String> colCpf;
     
     @FXML
-    private TableColumn<?, ?> colStatus;
+    private TableColumn<Cliente, String> colStatus;
     
     @FXML
     public void initialize() {
-        configurarTabela();
         carregarClientes();
+        configurarTabela();
     }
     
     private void configurarTabela() {
-        // TODO: Implementar configuração da tabela
+        colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
+        colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        colTelefone.setCellValueFactory(new PropertyValueFactory<>("telefone"));
+        colCpf.setCellValueFactory(new PropertyValueFactory<>("cpf"));
+        colStatus.setCellValueFactory(new PropertyValueFactory<>("ativo"));
     }
     
     private void carregarClientes() {
-        // TODO: Implementar carregamento de clientes da API
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/clientes"))
+                .GET()
+                .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            ObjectMapper mapper = new ObjectMapper();
+            List<Cliente> clientes = mapper.readValue(response.body(),
+                mapper.getTypeFactory().constructCollectionType(List.class, Cliente.class));
+            tabelaClientes.getItems().setAll(clientes);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void criarCliente(Cliente novoCliente) {
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+            ObjectMapper mapper = new ObjectMapper();
+            String requestBody = mapper.writeValueAsString(novoCliente);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/clientes"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 201 || response.statusCode() == 200) {
+                carregarClientes(); // Atualiza a tabela
+            } else {
+                // Trate o erro conforme necessário
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     @FXML
     public void salvarCliente() {
         if (validarFormulario()) {
-            // TODO: Implementar salvamento na API
+            Cliente novoCliente = new Cliente();
+            novoCliente.setNome(txtNome.getText().trim());
+            novoCliente.setEmail(txtEmail.getText().trim());
+            novoCliente.setTelefone(txtTelefone.getText().trim());
+            novoCliente.setCpf(txtCpf.getText().trim());
+            novoCliente.setEndereco(txtEndereco.getText().trim());
+            novoCliente.setObservacoes(txtObservacoes.getText());
+            novoCliente.setAtivo(chkAtivo.isSelected());
+
+            criarCliente(novoCliente);
             mostrarMensagem("Sucesso", "Cliente salvo com sucesso!");
             limparFormulario();
-            carregarClientes();
         }
     }
     
