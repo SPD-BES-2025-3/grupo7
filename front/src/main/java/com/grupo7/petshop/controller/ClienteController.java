@@ -7,6 +7,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.cell.PropertyValueFactory;
 import com.grupo7.petshop.model.Cliente;
+import com.grupo7.petshop.model.DatabaseManager;
+import com.j256.ormlite.dao.Dao;
 
 public class ClienteController {
     
@@ -54,10 +56,19 @@ public class ClienteController {
     
     private ObservableList<Cliente> clientes = FXCollections.observableArrayList();
     
+    private Dao<Cliente, Integer> clienteDao;
+    
+    private Cliente clienteSelecionado;
+    
     @FXML
     public void initialize() {
-        configurarTabela();
-        carregarClientes();
+        try {
+            clienteDao = DatabaseManager.getClienteDao();
+            configurarTabela();
+            carregarClientes();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     private void configurarTabela() {
@@ -80,14 +91,16 @@ public class ClienteController {
     }
     
     private void carregarClientes() {
-        // TODO: Implementar carregamento de dados da API
-        // Por enquanto, dados de exemplo
-        clientes.clear();
-        clientes.add(new Cliente("João Silva", "joao@email.com", "(11) 99999-9999", "123.456.789-00", "Rua A, 123", "Cliente ativo", true));
-        clientes.add(new Cliente("Maria Santos", "maria@email.com", "(11) 88888-8888", "987.654.321-00", "Rua B, 456", "Cliente ativo", true));
+        try {
+            clientes.clear();
+            clientes.addAll(clienteDao.queryForAll());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
     
     private void carregarClienteParaFormulario(Cliente cliente) {
+        this.clienteSelecionado = cliente;
         txtNome.setText(cliente.getNome());
         txtEmail.setText(cliente.getEmail());
         txtTelefone.setText(cliente.getTelefone());
@@ -99,21 +112,45 @@ public class ClienteController {
     
     @FXML
     public void salvarCliente() {
+        System.out.println("Tentando salvar cliente...");
         if (validarFormulario()) {
-            Cliente cliente = new Cliente(
-                txtNome.getText(),
-                txtEmail.getText(),
-                txtTelefone.getText(),
-                txtCpf.getText(),
-                txtEndereco.getText(),
-                txtObservacoes.getText(),
-                chkAtivo.isSelected()
-            );
-            
-            // TODO: Implementar salvamento na API
-            mostrarMensagem("Sucesso", "Cliente salvo com sucesso!");
-            limparFormulario();
-            carregarClientes();
+            try {
+                Cliente cliente;
+                if (clienteSelecionado != null) {
+                    // Atualização: mantém o id
+                    cliente = new Cliente(
+                        txtNome.getText(),
+                        txtEmail.getText(),
+                        txtTelefone.getText(),
+                        txtCpf.getText(),
+                        txtEndereco.getText(),
+                        txtObservacoes.getText(),
+                        chkAtivo.isSelected()
+                    );
+                    // Supondo que seu modelo tem setId/getId
+                    cliente.setId(clienteSelecionado.getId());
+                } else {
+                    // Novo cliente
+                    cliente = new Cliente(
+                        txtNome.getText(),
+                        txtEmail.getText(),
+                        txtTelefone.getText(),
+                        txtCpf.getText(),
+                        txtEndereco.getText(),
+                        txtObservacoes.getText(),
+                        chkAtivo.isSelected()
+                    );
+                }
+                clienteDao.createOrUpdate(cliente);
+                System.out.println("Cliente salvo no banco!");
+                mostrarMensagem("Sucesso", "Cliente salvo com sucesso!");
+                limparFormulario();
+                carregarClientes();
+                clienteSelecionado = null;
+            } catch (Exception e) {
+                e.printStackTrace();
+                mostrarMensagem("Erro", "Erro ao salvar cliente: " + e.getMessage());
+            }
         }
     }
     
@@ -127,6 +164,7 @@ public class ClienteController {
         txtObservacoes.clear();
         chkAtivo.setSelected(true);
         tabelaClientes.getSelectionModel().clearSelection();
+        clienteSelecionado = null;
     }
     
     @FXML
@@ -137,13 +175,17 @@ public class ClienteController {
             alert.setTitle("Confirmar Exclusão");
             alert.setHeaderText("Excluir Cliente");
             alert.setContentText("Deseja realmente excluir o cliente " + clienteSelecionado.getNome() + "?");
-            
+
             alert.showAndWait().ifPresent(response -> {
                 if (response == ButtonType.OK) {
-                    // TODO: Implementar exclusão na API
-                    clientes.remove(clienteSelecionado);
-                    mostrarMensagem("Sucesso", "Cliente excluído com sucesso!");
-                    limparFormulario();
+                    try {
+                        clienteDao.delete(clienteSelecionado);
+                        clientes.remove(clienteSelecionado);
+                        mostrarMensagem("Sucesso", "Cliente excluído com sucesso!");
+                        limparFormulario();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
         } else {
@@ -153,20 +195,26 @@ public class ClienteController {
     
     @FXML
     public void pesquisarClientes() {
+        System.out.println("Método pesquisarClientes chamado!");
         String termo = txtPesquisa.getText().toLowerCase();
-        if (termo.isEmpty()) {
-            tabelaClientes.setItems(clientes);
-        } else {
-            ObservableList<Cliente> clientesFiltrados = FXCollections.observableArrayList();
-            for (Cliente cliente : clientes) {
-                if (cliente.getNome().toLowerCase().contains(termo) ||
-                    cliente.getEmail().toLowerCase().contains(termo) ||
-                    cliente.getCpf().contains(termo)) {
-                    clientesFiltrados.add(cliente);
+        try {
+            if (termo.isEmpty()) {
+                clientes.setAll(clienteDao.queryForAll());
+            } else {
+                ObservableList<Cliente> clientesFiltrados = FXCollections.observableArrayList();
+                for (Cliente cliente : clienteDao.queryForAll()) {
+                    if (cliente.getNome().toLowerCase().contains(termo) ||
+                        cliente.getEmail().toLowerCase().contains(termo) ||
+                        cliente.getCpf().contains(termo)) {
+                        clientesFiltrados.add(cliente);
+                    }
                 }
+                clientes.setAll(clientesFiltrados);
             }
-            tabelaClientes.setItems(clientesFiltrados);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        tabelaClientes.setItems(clientes);
     }
     
     private boolean validarFormulario() {

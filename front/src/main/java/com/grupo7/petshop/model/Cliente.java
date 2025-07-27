@@ -37,6 +37,10 @@ public class Cliente {
         this.ativo = ativo;
     }
     
+    // Adicione estes métodos:
+    public int getId() { return id; }
+    public void setId(int id) { this.id = id; }
+
     // Getters
     public String getNome() { return nome; }
     public String getEmail() { return email; }

@@ -29,8 +29,7 @@ public class App extends Application {
 
     private static Parent loadFXML(String fxml) throws IOException {
         String fxmlName = fxml.endsWith(".fxml") ? fxml : fxml + ".fxml";
-        System.out.println("Loading FXML: " + fxmlName);
-        System.out.println("Loading FXML2: " + "/com/grupo7/petshop/" + fxmlName);
+        System.out.println("Tentando carregar FXML: " + fxmlName);
         FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("/com/grupo7/petshop/" + fxmlName));
         return fxmlLoader.load();
     }
@@ -39,4 +38,9 @@ public class App extends Application {
         launch();
     }
 
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        com.grupo7.petshop.model.DatabaseManager.close();
+    }
 }
