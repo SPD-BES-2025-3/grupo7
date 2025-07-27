@@ -25,7 +25,11 @@
         <VBox styleClass="dashboard-card" prefWidth="250" prefHeight="150" 
                style="-fx-background-color: #3498db; -fx-background-radius: 10;">
             <Label text="Total de Clientes" style="-fx-text-fill: white; -fx-font-size: 16px;" 
-                   alignment="CENTER" padding="10"/>
+                   alignment="CENTER">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+            </Label>
             <Label fx:id="totalClientesLabel" text="0" 
                    style="-fx-text-fill: white; -fx-font-size: 48px; -fx-font-weight: bold;" 
                    alignment="CENTER"/>
@@ -34,7 +38,11 @@
         <VBox styleClass="dashboard-card" prefWidth="250" prefHeight="150" 
                style="-fx-background-color: #e74c3c; -fx-background-radius: 10;" GridPane.columnIndex="1">
             <Label text="Total de Pets" style="-fx-text-fill: white; -fx-font-size: 16px;" 
-                   alignment="CENTER" padding="10"/>
+                   alignment="CENTER">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+            </Label>
             <Label fx:id="totalPetsLabel" text="0" 
                    style="-fx-text-fill: white; -fx-font-size: 48px; -fx-font-weight: bold;" 
                    alignment="CENTER"/>
@@ -43,7 +51,11 @@
         <VBox styleClass="dashboard-card" prefWidth="250" prefHeight="150" 
                style="-fx-background-color: #27ae60; -fx-background-radius: 10;" GridPane.columnIndex="2">
             <Label text="Agendamentos Hoje" style="-fx-text-fill: white; -fx-font-size: 16px;" 
-                   alignment="CENTER" padding="10"/>
+                   alignment="CENTER">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+            </Label>
             <Label fx:id="agendamentosHojeLabel" text="0" 
                    style="-fx-text-fill: white; -fx-font-size: 48px; -fx-font-weight: bold;" 
                    alignment="CENTER"/>
@@ -52,7 +64,11 @@
         <VBox styleClass="dashboard-card" prefWidth="250" prefHeight="150" 
                style="-fx-background-color: #f39c12; -fx-background-radius: 10;" GridPane.columnIndex="3">
             <Label text="Vendas do Mês" style="-fx-text-fill: white; -fx-font-size: 16px;" 
-                   alignment="CENTER" padding="10"/>
+                   alignment="CENTER">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+            </Label>
             <Label fx:id="vendasMesLabel" text="R$ 0,00" 
                    style="-fx-text-fill: white; -fx-font-size: 32px; -fx-font-weight: bold;" 
                    alignment="CENTER"/>

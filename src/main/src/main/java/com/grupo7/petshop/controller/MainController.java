@@ -21,32 +21,32 @@ public class MainController {
     
     @FXML
     public void showDashboard() {
-        loadView("/fxml/DashboardView.fxml");
+        loadView("DashboardView");
     }
     
     @FXML
     public void showClientes() {
-        loadView("/fxml/ClienteView.fxml");
+        loadView("ClienteView");
     }
     
     @FXML
     public void showPets() {
-        loadView("/fxml/PetView.fxml");
+        loadView("PetView");
     }
     
     @FXML
     public void showProdutos() {
-        loadView("/fxml/ProdutoView.fxml");
+        loadView("ProdutoView");
     }
     
     @FXML
     public void showAgendamentos() {
-        loadView("/fxml/AgendamentoView.fxml");
+        loadView("AgendamentoView");
     }
     
     @FXML
     public void showVendas() {
-        loadView("/fxml/VendaView.fxml");
+        loadView("VendaView");
     }
     
     @FXML
@@ -66,7 +66,8 @@ public class MainController {
     
     private void loadView(String fxmlPath) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
+            String fxmlName = fxmlPath.endsWith(".fxml") ? fxmlPath : fxmlPath + ".fxml";
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/grupo7/petshop/" + fxmlName));
             Parent view = loader.load();
             contentArea.getChildren().clear();
             contentArea.getChildren().add(view);

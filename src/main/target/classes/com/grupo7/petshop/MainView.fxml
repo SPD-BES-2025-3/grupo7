@@ -6,6 +6,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import java.net.URL?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.HBox?>
@@ -21,7 +22,7 @@
         <VBox styleClass="sidebar" prefWidth="250" style="-fx-background-color: #2c3e50;">
             <Label text="Pet Shop" styleClass="sidebar-title" 
                    style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"
-                   alignment="CENTER">
+                   alignment="CENTER"/>
                 <padding>
                     <Insets top="20" right="20" bottom="20" left="20"/>
                 </padding>
@@ -64,7 +65,7 @@
     </top>
     
     <stylesheets>
-        <String fx:value="/css/styles.css"/>
+        <URL value="@styles.css"/>
     </stylesheets>
     
 </BorderPane> 
