@@ -1,13 +1,30 @@
 package com.grupo7.petshop.model;
 
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.table.DatabaseTable;
+
+@DatabaseTable(tableName = "clientes")
 public class Cliente {
+    @DatabaseField(generatedId = true)
+    private int id;
+    @DatabaseField(canBeNull = false)
     private String nome;
+    @DatabaseField(canBeNull = false)
     private String email;
+    @DatabaseField(canBeNull = false)
     private String telefone;
+    @DatabaseField(canBeNull = false, unique = true)
     private String cpf;
+    @DatabaseField(canBeNull = false)
     private String endereco;
+    @DatabaseField
     private String observacoes;
+    @DatabaseField
     private boolean ativo;
+    
+    public Cliente() {
+        // ORMLite precisa de um construtor sem argumentos
+    }
     
     public Cliente(String nome, String email, String telefone, String cpf, 
                   String endereco, String observacoes, boolean ativo) {
