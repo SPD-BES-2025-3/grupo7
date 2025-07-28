@@ -5,6 +5,14 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import com.grupo7.petshop.model.Cliente;
+import com.grupo7.petshop.model.Produto;
+import com.grupo7.petshop.model.Venda;
+import com.grupo7.petshop.model.DatabaseManager;
+import com.j256.ormlite.dao.Dao;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.stream.Collectors;
 import java.math.BigDecimal;
 
 public class VendaController {
@@ -34,42 +42,30 @@ public class VendaController {
     private Label lblTotalVenda;
     
     @FXML
-    private TableView<?> tabelaItens;
+    private TableView<ItemVenda> tabelaItens;
+    @FXML
+    private TableColumn<ItemVenda, String> colProduto;
+    @FXML
+    private TableColumn<ItemVenda, Integer> colQuantidade;
+    @FXML
+    private TableColumn<ItemVenda, Double> colPrecoUnitario;
+    @FXML
+    private TableColumn<ItemVenda, Double> colSubtotal;
+    @FXML
+    private TableColumn<ItemVenda, ItemVenda> colAcoes;
     
     @FXML
-    private TableColumn<?, ?> colProduto;
-    
+    private TableView<Venda> tabelaVendas;
     @FXML
-    private TableColumn<?, ?> colQuantidade;
-    
+    private TableColumn<Venda, String> colClienteVenda;
     @FXML
-    private TableColumn<?, ?> colPrecoUnitario;
-    
+    private TableColumn<Venda, String> colDataVenda;
     @FXML
-    private TableColumn<?, ?> colSubtotal;
-    
-    @FXML
-    private TableColumn<?, ?> colAcoes;
-    
-    @FXML
-    private TableView<?> tabelaVendas;
-    
-    @FXML
-    private TableColumn<?, ?> colClienteVenda;
-    
-    @FXML
-    private TableColumn<?, ?> colDataVenda;
-    
-    @FXML
-    private TableColumn<?, ?> colTotalVenda;
-    
-    @FXML
-    private TableColumn<?, ?> colFormaPagamento;
-    
-    @FXML
-    private TableColumn<?, ?> colStatusVenda;
+    private TableColumn<Venda, String> colTotalVenda;
     
     private BigDecimal totalVenda = BigDecimal.ZERO;
+    
+    private ObservableList<ItemVenda> itensVenda = FXCollections.observableArrayList();
     
     @FXML
     public void initialize() {
@@ -85,51 +81,122 @@ public class VendaController {
             "DINHEIRO", "CARTAO_CREDITO", "CARTAO_DEBITO", "PIX"
         );
         cmbFormaPagamento.setItems(formasPagamento);
-        
+
         // Configurar status
         ObservableList<String> status = FXCollections.observableArrayList(
             "PENDENTE", "PAGO", "CANCELADO"
         );
         cmbStatus.setItems(status);
         cmbStatus.setValue("PENDENTE");
-        
-        // TODO: Carregar clientes e produtos da API
-        ObservableList<String> clientes = FXCollections.observableArrayList(
-            "Cliente 1", "Cliente 2", "Cliente 3"
-        );
-        cmbCliente.setItems(clientes);
-        
-        ObservableList<String> produtos = FXCollections.observableArrayList(
-            "Produto 1", "Produto 2", "Produto 3"
-        );
-        cmbProduto.setItems(produtos);
+
+        // Carregar clientes do banco
+        try {
+            Dao<Cliente, Integer> clienteDao = DatabaseManager.getClienteDao();
+            List<Cliente> listaClientes = clienteDao.queryForAll();
+            ObservableList<String> clientes = FXCollections.observableArrayList(
+                listaClientes.stream().map(c -> c.getNome() + " (" + c.getCpf() + ")").collect(Collectors.toList())
+            );
+            cmbCliente.setItems(clientes);
+        } catch (SQLException e) {
+            cmbCliente.setItems(FXCollections.observableArrayList());
+            mostrarErro("Erro ao carregar clientes: " + e.getMessage());
+        }
+
+        // Carregar produtos do banco
+        try {
+            Dao<Produto, Integer> produtoDao = DatabaseManager.getProdutoDao();
+            List<Produto> listaProdutos = produtoDao.queryForAll();
+            ObservableList<String> produtos = FXCollections.observableArrayList(
+                listaProdutos.stream().map(Produto::getNome).collect(Collectors.toList())
+            );
+            cmbProduto.setItems(produtos);
+        } catch (SQLException e) {
+            cmbProduto.setItems(FXCollections.observableArrayList());
+            mostrarErro("Erro ao carregar produtos: " + e.getMessage());
+        }
     }
     
     private void configurarTabelas() {
-        // TODO: Implementar configuração das tabelas
+        // Tabela de itens
+        tabelaItens.setItems(itensVenda);
+        colProduto.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getProduto()));
+        colQuantidade.setCellValueFactory(cellData -> new javafx.beans.property.SimpleIntegerProperty(cellData.getValue().getQuantidade()).asObject());
+        colPrecoUnitario.setCellValueFactory(cellData -> new javafx.beans.property.SimpleDoubleProperty(cellData.getValue().getPrecoUnitario()).asObject());
+        colSubtotal.setCellValueFactory(cellData -> new javafx.beans.property.SimpleDoubleProperty(cellData.getValue().getSubtotal()).asObject());
+        colAcoes.setCellValueFactory(param -> new javafx.beans.property.ReadOnlyObjectWrapper<>(param.getValue()));
+        colAcoes.setCellFactory(param -> new TableCell<ItemVenda, ItemVenda>() {
+            private final Button btnRemover = new Button("Remover");
+            {
+                btnRemover.setOnAction(event -> {
+                    ItemVenda item = getItem();
+                    itensVenda.remove(item);
+                    atualizarTotalVenda();
+                });
+            }
+            @Override
+            protected void updateItem(ItemVenda item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setGraphic(null);
+                } else {
+                    setGraphic(btnRemover);
+                }
+            }
+        });
+        // Tabela de vendas
+        colClienteVenda.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getClienteCpf()));
+        colDataVenda.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getData() != null ? cellData.getValue().getData().toString() : ""));
+        colTotalVenda.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(String.valueOf(cellData.getValue().getValorTotal())));
     }
     
     private void carregarVendas() {
-        // TODO: Implementar carregamento de vendas da API
+        try {
+            Dao<Venda, Integer> vendaDao = DatabaseManager.getVendaDao();
+            List<Venda> lista = vendaDao.queryForAll();
+            tabelaVendas.setItems(FXCollections.observableArrayList(lista));
+        } catch (SQLException e) {
+            tabelaVendas.setItems(FXCollections.observableArrayList());
+            mostrarErro("Erro ao carregar vendas: " + e.getMessage());
+        }
     }
     
     @FXML
     public void adicionarItem() {
         if (validarItem()) {
-            // TODO: Implementar adição de item
+            String produto = cmbProduto.getValue();
+            int quantidade = Integer.parseInt(txtQuantidade.getText().trim());
+            double precoUnitario = Double.parseDouble(txtPrecoUnitario.getText().trim());
+            ItemVenda item = new ItemVenda(produto, quantidade, precoUnitario);
+            itensVenda.add(item);
+            atualizarTotalVenda();
             mostrarMensagem("Sucesso", "Item adicionado com sucesso!");
             limparCamposItem();
-            atualizarTotalVenda();
         }
     }
     
     @FXML
     public void finalizarVenda() {
         if (validarVenda()) {
-            // TODO: Implementar finalização da venda
-            mostrarMensagem("Sucesso", "Venda finalizada com sucesso!");
-            limparFormulario();
-            carregarVendas();
+            try {
+                Dao<com.grupo7.petshop.model.Venda, Integer> vendaDao = com.grupo7.petshop.model.DatabaseManager.getVendaDao();
+                // Extrair dados do formulário
+                String clienteStr = cmbCliente.getValue();
+                String clienteCpf = "";
+                if (clienteStr != null && clienteStr.contains("(") && clienteStr.contains(")")) {
+                    int ini = clienteStr.lastIndexOf('(') + 1;
+                    int fim = clienteStr.lastIndexOf(')');
+                    clienteCpf = clienteStr.substring(ini, fim);
+                }
+                java.util.Date data = new java.util.Date(); // Data atual
+                double valorTotal = totalVenda.doubleValue();
+                com.grupo7.petshop.model.Venda venda = new com.grupo7.petshop.model.Venda(clienteCpf, data, valorTotal);
+                vendaDao.create(venda);
+                mostrarMensagem("Sucesso", "Venda finalizada com sucesso!");
+                limparFormulario();
+                carregarVendas();
+            } catch (Exception e) {
+                mostrarErro("Erro ao salvar venda: " + e.getMessage());
+            }
         }
     }
     
@@ -142,9 +209,9 @@ public class VendaController {
         cmbFormaPagamento.setValue(null);
         cmbStatus.setValue("PENDENTE");
         txtObservacoes.clear();
+        itensVenda.clear();
         totalVenda = BigDecimal.ZERO;
         atualizarTotalVenda();
-        // TODO: Limpar tabela de itens
     }
     
     @FXML
@@ -216,23 +283,36 @@ public class VendaController {
             mostrarErro("Cliente é obrigatório");
             return false;
         }
-        
         if (cmbFormaPagamento.getValue() == null) {
             mostrarErro("Forma de pagamento é obrigatória");
             return false;
         }
-        
-        // TODO: Verificar se há itens na venda
-        if (totalVenda.compareTo(BigDecimal.ZERO) <= 0) {
+        if (itensVenda.isEmpty()) {
             mostrarErro("Venda deve ter pelo menos um item");
             return false;
         }
-        
         return true;
     }
     
     private void atualizarTotalVenda() {
+        totalVenda = BigDecimal.valueOf(itensVenda.stream().mapToDouble(ItemVenda::getSubtotal).sum());
         lblTotalVenda.setText(String.format("R$ %.2f", totalVenda));
+    }
+
+    // Classe interna para representar um item da venda
+    public static class ItemVenda {
+        private final String produto;
+        private final int quantidade;
+        private final double precoUnitario;
+        public ItemVenda(String produto, int quantidade, double precoUnitario) {
+            this.produto = produto;
+            this.quantidade = quantidade;
+            this.precoUnitario = precoUnitario;
+        }
+        public String getProduto() { return produto; }
+        public int getQuantidade() { return quantidade; }
+        public double getPrecoUnitario() { return precoUnitario; }
+        public double getSubtotal() { return quantidade * precoUnitario; }
     }
     
     private void mostrarMensagem(String titulo, String mensagem) {
@@ -250,4 +330,4 @@ public class VendaController {
         alert.setContentText(mensagem);
         alert.showAndWait();
     }
-} 
+}
