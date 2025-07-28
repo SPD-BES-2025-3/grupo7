@@ -5,6 +5,11 @@ import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import com.grupo7.petshop.model.Produto;
+import com.grupo7.petshop.model.DatabaseManager;
+import com.j256.ormlite.dao.Dao;
+import java.sql.SQLException;
+import java.util.List;
 import java.math.BigDecimal;
 
 public class ProdutoController {
@@ -43,28 +48,21 @@ public class ProdutoController {
     private TextField txtPesquisa;
     
     @FXML
-    private TableView<?> tabelaProdutos;
-    
+    private TableView<Produto> tabelaProdutos;
     @FXML
-    private TableColumn<?, ?> colNome;
-    
+    private TableColumn<Produto, String> colNome;
     @FXML
-    private TableColumn<?, ?> colCodigo;
-    
+    private TableColumn<Produto, String> colCodigo;
     @FXML
-    private TableColumn<?, ?> colCategoria;
-    
+    private TableColumn<Produto, String> colCategoria;
     @FXML
-    private TableColumn<?, ?> colPreco;
-    
+    private TableColumn<Produto, String> colPreco;
     @FXML
-    private TableColumn<?, ?> colEstoque;
-    
+    private TableColumn<Produto, String> colEstoque;
     @FXML
-    private TableColumn<?, ?> colMarca;
-    
+    private TableColumn<Produto, String> colMarca;
     @FXML
-    private TableColumn<?, ?> colStatus;
+    private TableColumn<Produto, String> colStatus;
     
     @FXML
     public void initialize() {
@@ -82,20 +80,40 @@ public class ProdutoController {
     }
     
     private void configurarTabela() {
-        // TODO: Implementar configuração da tabela
+        colNome.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(cellData.getValue().getNome()));
+        // colCodigo, colCategoria, colMarca, colStatus não existem no modelo Produto, então não configuramos
+        colPreco.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(String.valueOf(cellData.getValue().getPreco())));
+        colEstoque.setCellValueFactory(cellData -> new javafx.beans.property.SimpleStringProperty(String.valueOf(cellData.getValue().getQuantidadeEstoque())));
     }
     
     private void carregarProdutos() {
-        // TODO: Implementar carregamento de produtos da API
+        try {
+            Dao<Produto, Integer> produtoDao = DatabaseManager.getProdutoDao();
+            List<Produto> lista = produtoDao.queryForAll();
+            tabelaProdutos.setItems(FXCollections.observableArrayList(lista));
+        } catch (SQLException e) {
+            tabelaProdutos.setItems(FXCollections.observableArrayList());
+            mostrarErro("Erro ao carregar produtos: " + e.getMessage());
+        }
     }
     
     @FXML
     public void salvarProduto() {
         if (validarFormulario()) {
-            // TODO: Implementar salvamento na API
-            mostrarMensagem("Sucesso", "Produto salvo com sucesso!");
-            limparFormulario();
-            carregarProdutos();
+            try {
+                Dao<com.grupo7.petshop.model.Produto, Integer> produtoDao = com.grupo7.petshop.model.DatabaseManager.getProdutoDao();
+                String nome = txtNome.getText().trim();
+                String descricao = txtDescricao.getText().trim();
+                double preco = Double.parseDouble(txtPreco.getText().trim());
+                int quantidadeEstoque = Integer.parseInt(txtEstoque.getText().trim());
+                com.grupo7.petshop.model.Produto produto = new com.grupo7.petshop.model.Produto(nome, descricao, preco, quantidadeEstoque);
+                produtoDao.create(produto);
+                mostrarMensagem("Sucesso", "Produto salvo com sucesso!");
+                limparFormulario();
+                carregarProdutos();
+            } catch (Exception e) {
+                mostrarErro("Erro ao salvar produto: " + e.getMessage());
+            }
         }
     }
     
