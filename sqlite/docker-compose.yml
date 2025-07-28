@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  sqlite-app:
+    build: .
+    container_name: grupo7-sqlite-app
+    ports:
+      - "8081:8080"
+    volumes:
+      - sqlite_data:/app/data
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:sqlite:/app/data/grupo7.db
+      - SPRING_PROFILES_ACTIVE=sqlite
+      - SPRING_DATA_REDIS_HOST=redis
+      - SPRING_DATA_REDIS_PORT=6379
+    networks:
+      - grupo7-network
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: grupo7-redis-sqlite
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+    networks:
+      - grupo7-network
+
+volumes:
+  sqlite_data:
+  redis_data:
+
+networks:
+  grupo7-network:
+    driver: bridge 

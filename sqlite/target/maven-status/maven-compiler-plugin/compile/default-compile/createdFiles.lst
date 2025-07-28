@@ -1,0 +1,8 @@
+com\grupo7\sqlite\event\IntegrationEvent.class
+com\grupo7\sqlite\repository\ClienteRepository.class
+com\grupo7\sqlite\service\ClienteService.class
+com\grupo7\sqlite\SqliteApplication.class
+com\grupo7\sqlite\config\RedisConfig.class
+com\grupo7\sqlite\model\Cliente.class
+com\grupo7\sqlite\service\EventPublisherService.class
+com\grupo7\sqlite\controller\ClienteController.class

@@ -1,0 +1,8 @@
+C:\grupo7\sqlite\src\main\java\com\grupo7\sqlite\controller\ClienteController.java
+C:\grupo7\sqlite\src\main\java\com\grupo7\sqlite\SqliteApplication.java
+C:\grupo7\sqlite\src\main\java\com\grupo7\sqlite\repository\ClienteRepository.java
+C:\grupo7\sqlite\src\main\java\com\grupo7\sqlite\event\IntegrationEvent.java
+C:\grupo7\sqlite\src\main\java\com\grupo7\sqlite\config\RedisConfig.java
+C:\grupo7\sqlite\src\main\java\com\grupo7\sqlite\model\Cliente.java
+C:\grupo7\sqlite\src\main\java\com\grupo7\sqlite\service\EventPublisherService.java
+C:\grupo7\sqlite\src\main\java\com\grupo7\sqlite\service\ClienteService.java
