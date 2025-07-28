@@ -1,6 +1,67 @@
-# API RESTful para Petshop - Spring Boot e MongoDB
+# API RESTful para Petshop - Spring Boot, MongoDB e Redis Pub/Sub
 
-Esta é uma API RESTful desenvolvida com Spring Boot e MongoDB para gerenciamento de petshop.
+Esta é uma API RESTful desenvolvida com Spring Boot, MongoDB e Redis para gerenciamento de petshop com arquitetura de eventos e integração bidirecional.
+
+## 🏗️ Arquitetura do Sistema
+
+### **Arquitetura Pub/Sub com Redis**
+O sistema utiliza uma arquitetura de eventos com Redis Pub/Sub para comunicação entre componentes:
+
+```mermaid
+graph TB
+    subgraph "Sistema ODM (MongoDB)"
+        A[API Spring Boot] --> B[MongoDB]
+        A --> C[Event Publisher]
+    end
+    
+    subgraph "Sistema ORM (H2/SQLite)"
+        D[H2 Application] --> E[H2 Database]
+        D --> F[Event Publisher]
+    end
+    
+    subgraph "Redis Pub/Sub"
+        G[orm-events Channel]
+        H[odm-events Channel]
+        I[venda-events Channel]
+        J[estoque-events Channel]
+    end
+    
+    subgraph "Middleware Integrador"
+        K[Integration Listener]
+        L[ORM → ODM Transformer]
+        M[ODM → ORM Transformer]
+    end
+    
+    C --> G
+    F --> H
+    A --> I
+    A --> J
+    G --> K
+    H --> K
+    K --> L
+    K --> M
+    L --> B
+    M --> E
+```
+
+### **Componentes da Arquitetura**
+
+#### **1. Eventos de Integração**
+- `IntegrationEvent`: Evento base para comunicação entre sistemas
+- `VendaEvent`: Eventos específicos de vendas
+- `EstoqueEvent`: Eventos de atualização de estoque
+- Suporta operações: CREATE, UPDATE, DELETE
+
+#### **2. Middleware Integrador**
+- `IntegrationListener`: Escuta eventos dos canais Redis
+- `OrmToOdmTransformer`: Converte dados relacional → documento
+- `OdmToOrmTransformer`: Converte dados documento → relacional
+
+#### **3. Canais de Eventos**
+- `orm-events`: Eventos do sistema ORM (H2/SQLite)
+- `odm-events`: Eventos do sistema ODM (MongoDB)
+- `venda-events`: Eventos de vendas
+- `estoque-events`: Eventos de estoque
 
 ## 🏪 Funcionalidades do Petshop
 
@@ -9,6 +70,7 @@ Esta é uma API RESTful desenvolvida com Spring Boot e MongoDB para gerenciament
 - Busca por nome, email, CPF e telefone
 - Controle de status ativo/inativo
 - Relacionamento com pets
+- **Sincronização bidirecional** entre sistemas
 
 ### **Gestão de Pets**
 - Cadastro de pets vinculados aos clientes
@@ -22,6 +84,7 @@ Esta é uma API RESTful desenvolvida com Spring Boot e MongoDB para gerenciament
 - Busca por nome, categoria, marca
 - Alertas de estoque baixo
 - Gestão de preços
+- **Eventos de estoque** em tempo real
 
 ### **Sistema de Agendamentos**
 - Agendamento de serviços (banho, tosa, consulta)
@@ -36,12 +99,16 @@ Esta é uma API RESTful desenvolvida com Spring Boot e MongoDB para gerenciament
 - Controle de estoque na finalização
 - Múltiplas formas de pagamento
 - Relatórios de vendas por período
+- **Eventos de venda** em tempo real
 
 ## 🛠️ Tecnologias Utilizadas
 
 - **Spring Boot 3.2.0**
 - **Spring Data MongoDB**
+- **Spring Data Redis**
 - **MongoDB**
+- **Redis**
+- **H2 Database** (sistema ORM)
 - **Java 17**
 - **Maven**
 - **Bean Validation**
@@ -53,7 +120,9 @@ Esta é uma API RESTful desenvolvida com Spring Boot e MongoDB para gerenciament
 src/main/java/com/grupo7/api/
 ├── ApiApplication.java              # Classe principal
 ├── config/
-│   └── MongoConfig.java            # Configuração MongoDB
+│   ├── MongoConfig.java            # Configuração MongoDB
+│   ├── RedisConfig.java            # Configuração Redis
+│   └── IntegrationConfig.java      # Configuração integração
 ├── controller/
 │   ├── ClienteController.java      # Gestão de clientes
 │   ├── PetController.java          # Gestão de pets
@@ -61,9 +130,23 @@ src/main/java/com/grupo7/api/
 │   ├── AgendamentoController.java  # Gestão de agendamentos
 │   ├── VendaController.java        # Gestão de vendas
 │   ├── UsuarioController.java      # Gestão de usuários
-│   └── HealthController.java       # Saúde da API
+│   ├── HealthController.java       # Saúde da API
+│   ├── EventController.java        # Teste de eventos
+│   └── IntegrationController.java  # Teste de integração
+├── event/
+│   ├── BaseEvent.java              # Evento base
+│   ├── VendaEvent.java             # Evento de venda
+│   ├── EstoqueEvent.java           # Evento de estoque
+│   └── IntegrationEvent.java       # Evento de integração
 ├── exception/
 │   └── GlobalExceptionHandler.java # Tratamento de erros
+├── integration/
+│   ├── IntegrationListener.java    # Listener de integração
+│   └── transformer/
+│       ├── OrmToOdmTransformer.java # Transformador ORM→ODM
+│       └── OdmToOrmTransformer.java # Transformador ODM→ORM
+├── listener/
+│   └── EventListeners.java         # Listeners de eventos
 ├── model/
 │   ├── BaseEntity.java             # Classe base
 │   ├── Cliente.java               # Entidade Cliente
@@ -85,7 +168,8 @@ src/main/java/com/grupo7/api/
     ├── ProdutoService.java        # Serviço Produto
     ├── AgendamentoService.java    # Serviço Agendamento
     ├── VendaService.java          # Serviço Venda
-    └── UsuarioService.java        # Serviço Usuario
+    ├── UsuarioService.java        # Serviço Usuario
+    └── EventPublisherService.java # Publicador de eventos
 ```
 
 ## 🚀 Configuração
@@ -94,14 +178,57 @@ src/main/java/com/grupo7/api/
 - Java 17 ou superior
 - Maven 3.6+
 - MongoDB 4.4+
+- Redis 6.0+
+- Docker (opcional)
 
-### Executando a Aplicação
+### Executando com Docker
+
+#### **1. Iniciar Infraestrutura**
 ```bash
+# Iniciar Redis
+cd redis
+docker-compose up -d
+
+# Iniciar MongoDB
+cd mongodb
+docker-compose up -d
+```
+
+#### **2. Executar Aplicações**
+```bash
+# API Principal (MongoDB)
 cd api
+mvn spring-boot:run
+
+# Aplicação H2 (ORM)
+cd sqlite
 mvn spring-boot:run
 ```
 
-A API estará disponível em: `http://localhost:8080/api`
+### Executando Localmente
+
+#### **1. Instalar Redis**
+```bash
+# Windows (WSL)
+sudo apt-get install redis-server
+
+# macOS
+brew install redis
+
+# Linux
+sudo apt-get install redis-server
+```
+
+#### **2. Executar Aplicações**
+```bash
+# API Principal
+cd api
+mvn spring-boot:run
+
+# Aplicação H2
+cd sqlite
+mvn spring-boot:run
+```
 
 ## 📋 Endpoints Principais
 
@@ -182,60 +309,94 @@ A API estará disponível em: `http://localhost:8080/api`
 - `PATCH /{id}/finalizar?formaPagamento={forma}` - Finalizar venda
 - `PATCH /{id}/cancelar` - Cancelar venda
 
+### **Eventos** (`/api/events`)
+- `POST /test/venda` - Testar evento de venda
+- `POST /test/estoque` - Testar evento de estoque
+- `GET /status` - Status do sistema de eventos
+
+### **Integração** (`/api/integration`)
+- `POST /orm-to-odm` - Testar integração ORM → ODM
+- `POST /odm-to-orm` - Testar integração ODM → ORM
+- `POST /test/cliente` - Teste de cliente ORM → ODM
+- `POST /test/produto` - Teste de produto ODM → ORM
+- `GET /status` - Status da integração
+
+### **Aplicação H2** (`/sqlite/clientes`)
+- `GET /` - Listar todos os clientes
+- `GET /{id}` - Buscar cliente por ID
+- `GET /email/{email}` - Buscar por email
+- `GET /cpf/{cpf}` - Buscar por CPF
+- `GET /ativo/{ativo}` - Listar por status
+- `GET /buscar/{termo}` - Busca geral
+- `POST /` - Criar cliente
+- `PUT /{id}` - Atualizar cliente
+- `DELETE /{id}` - Deletar cliente
+- `GET /status` - Status da aplicação
+
 ## 💡 Exemplos de Uso
 
-### Criar um Cliente
+### **Teste de Sincronização Bidirecional**
+
+#### **1. Criar Cliente no H2 (ORM → ODM)**
 ```bash
-curl -X POST http://localhost:8080/api/clientes \
+curl -X POST http://localhost:8083/sqlite/clientes \
   -H "Content-Type: application/json" \
   -d '{
     "nome": "João Silva",
     "email": "joao@email.com",
     "telefone": "(11) 99999-9999",
+    "endereco": "Rua das Flores, 123",
     "cpf": "123.456.789-00",
-    "endereco": "Rua das Flores, 123"
+    "ativo": 1
   }'
 ```
 
-### Criar um Pet
+#### **2. Verificar Sincronização no MongoDB**
 ```bash
-curl -X POST http://localhost:8080/api/pets \
+curl http://localhost:8080/api/clientes/email/joao@email.com
+```
+
+#### **3. Criar Cliente no MongoDB (ODM → ORM)**
+```bash
+curl -X POST http://localhost:8080/api/clientes \
   -H "Content-Type: application/json" \
   -d '{
-    "nome": "Rex",
-    "especie": "Cachorro",
-    "raca": "Golden Retriever",
-    "dataNascimento": "2020-01-15",
-    "clienteId": "cliente_id_aqui"
+    "nome": "Maria Santos",
+    "email": "maria@email.com",
+    "telefone": "(11) 88888-8888",
+    "endereco": "Av. Paulista, 1000",
+    "cpf": "987.654.321-00",
+    "ativo": true
   }'
 ```
 
-### Criar um Agendamento
+#### **4. Verificar Sincronização no H2**
 ```bash
-curl -X POST http://localhost:8080/api/agendamentos \
+curl http://localhost:8083/sqlite/clientes/email/maria@email.com
+```
+
+### **Teste de Eventos**
+
+#### **Teste de Evento de Venda**
+```bash
+curl -X POST http://localhost:8080/api/events/test/venda \
   -H "Content-Type: application/json" \
   -d '{
-    "clienteId": "cliente_id_aqui",
-    "petId": "pet_id_aqui",
-    "servico": "Banho e Tosa",
-    "dataHora": "2024-01-15T14:00:00",
-    "observacoes": "Pet muito agitado"
+    "action": "CRIADA",
+    "vendaId": "venda-123"
   }'
 ```
 
-### Criar uma Venda
+#### **Teste de Evento de Estoque**
 ```bash
-curl -X POST http://localhost:8080/api/vendas \
+curl -X POST http://localhost:8080/api/events/test/estoque \
   -H "Content-Type: application/json" \
   -d '{
-    "clienteId": "cliente_id_aqui",
-    "itens": [
-      {
-        "produtoId": "produto_id_aqui",
-        "quantidade": 2,
-        "precoUnitario": 25.50
-      }
-    ]
+    "produtoId": "produto-456",
+    "produtoNome": "Ração Premium",
+    "quantidadeAnterior": 100,
+    "quantidadeAtual": 95,
+    "motivo": "VENDA"
   }'
 ```
 
@@ -245,6 +406,7 @@ curl -X POST http://localhost:8080/api/vendas \
 - Atualização automática do estoque na finalização de vendas
 - Alertas de produtos com estoque baixo
 - Validação de disponibilidade antes da venda
+- **Eventos de estoque** em tempo real
 
 ### **Gestão de Agendamentos**
 - Verificação de conflitos de horário
@@ -256,23 +418,20 @@ curl -X POST http://localhost:8080/api/vendas \
 - Vendas por cliente
 - Vendas por forma de pagamento
 
+### **Sincronização Bidirecional**
+- **ORM → ODM**: Dados do H2 sincronizados com MongoDB
+- **ODM → ORM**: Dados do MongoDB sincronizados com H2
+- Transformação automática de tipos de dados
+- Tratamento de conflitos de dados
+
+### **Sistema de Eventos**
+- **Pub/Sub** com Redis
+- Eventos de venda em tempo real
+- Eventos de estoque em tempo real
+- Integração bidirecional automática
+
 ### **Validações**
 - Validação de CPF e email únicos
 - Validação de códigos de produto únicos
 - Validação de datas futuras para agendamentos
 - Validação de estoque suficiente
-
-## 📊 Monitoramento
-
-Endpoints do Spring Boot Actuator:
-- `GET /api/actuator/health` - Saúde da aplicação
-- `GET /api/actuator/info` - Informações da aplicação
-- `GET /api/actuator/metrics` - Métricas da aplicação
-
-## 🎯 Próximos Passos
-
-- Implementar autenticação e autorização
-- Adicionar relatórios mais detalhados
-- Implementar notificações
-- Adicionar upload de imagens
-- Implementar dashboard administrativo 

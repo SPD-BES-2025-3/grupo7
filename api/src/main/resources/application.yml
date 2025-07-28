@@ -10,6 +10,17 @@ spring:
       username: root
       password: example
       authentication-database: admin
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
   jackson:
     default-property-inclusion: non_null
     serialization:
@@ -33,5 +44,6 @@ logging:
   level:
     com.grupo7: DEBUG
     org.springframework.data.mongodb: DEBUG
+    org.springframework.data.redis: DEBUG
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n" 
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
