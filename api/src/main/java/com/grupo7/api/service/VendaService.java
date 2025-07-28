@@ -1,5 +1,6 @@
 package com.grupo7.api.service;
 
+import com.grupo7.api.event.VendaEvent;
 import com.grupo7.api.model.Produto;
 import com.grupo7.api.model.Venda;
 import com.grupo7.api.repository.VendaRepository;
@@ -19,6 +20,9 @@ public class VendaService {
 
     @Autowired
     private ProdutoService produtoService;
+    
+    @Autowired
+    private EventPublisherService eventPublisherService;
 
     public List<Venda> findAll() {
         return vendaRepository.findAll();
@@ -95,7 +99,13 @@ public class VendaService {
             venda.setTotal(total);
         }
 
-        return vendaRepository.save(venda);
+        Venda savedVenda = vendaRepository.save(venda);
+        
+        // Publicar evento de venda criada
+        VendaEvent vendaEvent = new VendaEvent(savedVenda, "CRIADA");
+        eventPublisherService.publishVendaEvent(vendaEvent);
+        
+        return savedVenda;
     }
 
     public Venda update(String id, Venda venda) {
@@ -154,7 +164,13 @@ public class VendaService {
                 produtoService.atualizarEstoque(item.getProdutoId(), -item.getQuantidade());
             }
 
-            return vendaRepository.save(v);
+            Venda finalizadaVenda = vendaRepository.save(v);
+            
+            // Publicar evento de venda finalizada
+            VendaEvent vendaEvent = new VendaEvent(finalizadaVenda, "FINALIZADA");
+            eventPublisherService.publishVendaEvent(vendaEvent);
+            
+            return finalizadaVenda;
         }
         throw new RuntimeException("Venda não encontrada");
     }
@@ -164,7 +180,13 @@ public class VendaService {
         if (venda.isPresent()) {
             Venda v = venda.get();
             v.setStatus("CANCELADO");
-            return vendaRepository.save(v);
+            Venda canceladaVenda = vendaRepository.save(v);
+            
+            // Publicar evento de venda cancelada
+            VendaEvent vendaEvent = new VendaEvent(canceladaVenda, "CANCELADA");
+            eventPublisherService.publishVendaEvent(vendaEvent);
+            
+            return canceladaVenda;
         }
         throw new RuntimeException("Venda não encontrada");
     }

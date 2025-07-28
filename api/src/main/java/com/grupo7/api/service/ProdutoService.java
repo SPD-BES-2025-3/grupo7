@@ -1,5 +1,6 @@
 package com.grupo7.api.service;
 
+import com.grupo7.api.event.EstoqueEvent;
 import com.grupo7.api.model.Produto;
 import com.grupo7.api.repository.ProdutoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,9 @@ public class ProdutoService {
 
     @Autowired
     private ProdutoRepository produtoRepository;
+    
+    @Autowired
+    private EventPublisherService eventPublisherService;
 
     public List<Produto> findAll() {
         return produtoRepository.findAll();
@@ -148,10 +152,23 @@ public class ProdutoService {
         Optional<Produto> produto = produtoRepository.findById(produtoId);
         if (produto.isPresent()) {
             Produto p = produto.get();
-            int novoEstoque = p.getEstoque() + quantidade;
+            int estoqueAnterior = p.getEstoque();
+            int novoEstoque = estoqueAnterior + quantidade;
             if (novoEstoque >= 0) {
                 p.setEstoque(novoEstoque);
                 produtoRepository.save(p);
+                
+                // Publicar evento de atualização de estoque
+                String motivo = quantidade > 0 ? "REPOSIÇÃO" : "VENDA";
+                EstoqueEvent estoqueEvent = new EstoqueEvent(
+                    produtoId, 
+                    p.getNome(), 
+                    estoqueAnterior, 
+                    novoEstoque, 
+                    motivo
+                );
+                eventPublisherService.publishEstoqueEvent(estoqueEvent);
+                
                 return true;
             }
         }
