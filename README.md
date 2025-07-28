@@ -73,10 +73,9 @@ Desenvolver uma aplicação para gerenciamento de pet shops que integre frontend
 ### 🔹 Frontend (JavaFX)
 
 1. Acesse a pasta `front/`.
-2. Execute a classe `App.java`.
-3. As telas JavaFX se comunicarão com a API REST via `ApiService`.
-4. Apenas para testar, pode utilizar o comando `mvn exec:java -Dexec.mainClass="com.grupo7.petshop.model.TestORMLite"`
-
+2. Executar da seguinte forma:
+`mvn clean compile`
+`mvn exec:java -Dexec.mainClass="com.grupo7.petshop.App"`
 ---
 
 ## 🧪 Testes
