@@ -53,8 +53,6 @@ public class ClienteController {
     @FXML
     private TableColumn<Cliente, String> colCpf;
     
-
-    
     @FXML
     private TableColumn<Cliente, String> colStatus;
     
@@ -94,7 +92,6 @@ public class ClienteController {
         txtEmail.setText(cliente.getEmail());
         txtTelefone.setText(cliente.getTelefone());
         txtCpf.setText(cliente.getCpf());
-        txtEndereco.setText(cliente.getEndereco());
         txtObservacoes.setText(cliente.getObservacoes());
         chkAtivo.setSelected(cliente.isAtivo());
     }
@@ -112,7 +109,6 @@ public class ClienteController {
                         txtEmail.getText(),
                         txtTelefone.getText(),
                         txtCpf.getText(),
-                        txtEndereco.getText(),
                         txtObservacoes.getText(),
                         chkAtivo.isSelected()
                     );
@@ -125,7 +121,6 @@ public class ClienteController {
                         txtEmail.getText(),
                         txtTelefone.getText(),
                         txtCpf.getText(),
-                        txtEndereco.getText(),
                         txtObservacoes.getText(),
                         chkAtivo.isSelected()
                     );
@@ -163,7 +158,6 @@ public class ClienteController {
         txtEmail.clear();
         txtTelefone.clear();
         txtCpf.clear();
-        txtEndereco.clear();
         txtObservacoes.clear();
         chkAtivo.setSelected(true);
         tabelaClientes.getSelectionModel().clearSelection();
@@ -179,7 +173,6 @@ public class ClienteController {
                 clienteSelecionado.setEmail(txtEmail.getText());
                 clienteSelecionado.setTelefone(txtTelefone.getText());
                 clienteSelecionado.setCpf(txtCpf.getText());
-                clienteSelecionado.setEndereco(txtEndereco.getText());
                 clienteSelecionado.setObservacoes(txtObservacoes.getText());
                 clienteSelecionado.setAtivo(chkAtivo.isSelected());
                 
