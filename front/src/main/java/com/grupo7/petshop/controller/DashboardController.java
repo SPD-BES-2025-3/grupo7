@@ -17,9 +17,7 @@ import com.grupo7.petshop.model.Cliente;
 import com.grupo7.petshop.model.Pet;
 import com.grupo7.petshop.model.Agendamento;
 import com.grupo7.petshop.model.Venda;
-import com.grupo7.petshop.model.DatabaseManager;
-import com.j256.ormlite.dao.Dao;
-import java.sql.SQLException;
+import com.grupo7.petshop.service.ApiService;
 import java.time.LocalDate;
 import java.util.List;
 import javafx.collections.FXCollections;
@@ -68,21 +66,25 @@ public class DashboardController {
         
         // Para data/hora, vamos usar uma factory customizada para formatar
         colDataHora.setCellValueFactory(cellData -> {
-            if (cellData.getValue().getDataHora() != null) {
-                SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-                return new javafx.beans.property.SimpleStringProperty(
-                    formatter.format(cellData.getValue().getDataHora())
-                );
+            String dataHoraStr = cellData.getValue().getDataHora();
+            if (dataHoraStr != null && !dataHoraStr.isEmpty()) {
+                try {
+                    java.time.LocalDateTime ldt = java.time.LocalDateTime.parse(dataHoraStr);
+                    String formatado = ldt.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+                    return new javafx.beans.property.SimpleStringProperty(formatado);
+                } catch (Exception e) {
+                    return new javafx.beans.property.SimpleStringProperty(dataHoraStr); // fallback
+                }
+            } else {
+                return new javafx.beans.property.SimpleStringProperty("");
             }
-            return new javafx.beans.property.SimpleStringProperty("");
         });
         
         // Para status, vamos criar um status baseado na data (exemplo)
         colStatus.setCellValueFactory(cellData -> {
             // Como não há campo status no modelo, vamos criar um baseado na data
             if (cellData.getValue().getDataHora() != null) {
-                java.time.LocalDateTime agendamentoData = cellData.getValue().getDataHora()
-                    .toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+                java.time.LocalDateTime agendamentoData = java.time.LocalDateTime.parse(cellData.getValue().getDataHora());
                 java.time.LocalDateTime agora = java.time.LocalDateTime.now();
                 
                 if (agendamentoData.isBefore(agora)) {
@@ -99,18 +101,15 @@ public class DashboardController {
     
     private void carregarEstatisticas() {
         try {
-            Dao<Cliente, Integer> clienteDao = DatabaseManager.getClienteDao();
-            Dao<Pet, Integer> petDao = DatabaseManager.getPetDao();
-            Dao<Agendamento, Integer> agendamentoDao = DatabaseManager.getAgendamentoDao();
-            Dao<Venda, Integer> vendaDao = DatabaseManager.getVendaDao();
-
-            int totalClientes = clienteDao.queryForAll().size();
-            int totalPets = petDao.queryForAll().size();
-            int agendamentosHoje = (int) agendamentoDao.queryForAll().stream()
-                .filter(a -> a.getDataHora() != null && a.getDataHora().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate().equals(LocalDate.now()))
+            int totalClientes = ApiService.getAllClientes().size();
+            int totalPets = ApiService.getAllPets().size();
+            int agendamentosHoje = (int) ApiService.getAllAgendamentos().stream()
+                .filter(a -> a.getDataHora() != null &&
+                    java.time.LocalDateTime.parse(a.getDataHora()).toLocalDate().equals(java.time.LocalDate.now()))
                 .count();
-            double vendasMes = vendaDao.queryForAll().stream()
-                .filter(v -> v.getData() != null && v.getData().toInstant().atZone(java.time.ZoneId.systemDefault()).getMonthValue() == LocalDate.now().getMonthValue())
+            double vendasMes = ApiService.getAllVendas().stream()
+                .filter(v -> v.getData() != null &&
+                    v.getData().toInstant().atZone(java.time.ZoneId.systemDefault()).getMonthValue() == java.time.LocalDate.now().getMonthValue())
                 .mapToDouble(Venda::getValorTotal)
                 .sum();
 
@@ -118,34 +117,30 @@ public class DashboardController {
             totalPetsLabel.setText(String.valueOf(totalPets));
             agendamentosHojeLabel.setText(String.valueOf(agendamentosHoje));
             vendasMesLabel.setText(String.format("R$ %.2f", vendasMes));
-        } catch (SQLException e) {
+        } catch (java.io.IOException | InterruptedException e) {
             totalClientesLabel.setText("0");
             totalPetsLabel.setText("0");
             agendamentosHojeLabel.setText("0");
             vendasMesLabel.setText("R$ 0,00");
             mostrarMensagem("Erro", "Erro ao carregar estatísticas: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
     private void carregarAgendamentosRecentes() {
         try {
-            Dao<Agendamento, Integer> agendamentoDao = DatabaseManager.getAgendamentoDao();
-            List<Agendamento> lista = agendamentoDao.queryForAll();
-            
+            List<Agendamento> lista = ApiService.getAllAgendamentos();
             // Limitar aos últimos 10 agendamentos para não sobrecarregar a tela
             if (lista.size() > 10) {
                 lista = lista.subList(0, 10);
             }
-            
             agendamentosTableView.setItems(FXCollections.observableArrayList(lista));
-            
             // Debug - verificar se os dados estão sendo carregados
             System.out.println("Agendamentos carregados: " + lista.size());
             for (Agendamento ag : lista) {
                 System.out.println("Cliente: " + ag.getClienteCpf() + ", Pet: " + ag.getPetNome() + ", Serviço: " + ag.getServico());
             }
-            
-        } catch (SQLException e) {
+        } catch (java.io.IOException | InterruptedException e) {
             agendamentosTableView.setItems(FXCollections.observableArrayList());
             mostrarMensagem("Erro", "Erro ao carregar agendamentos recentes: " + e.getMessage());
             e.printStackTrace();

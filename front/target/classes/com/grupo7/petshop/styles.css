@@ -258,51 +258,9 @@
     -fx-font-weight: bold;
 }
 
-/* Tabelas */
-.table-view {
-    -fx-background-color: white;
-    -fx-border-color: #bdc3c7;
-    -fx-border-radius: 5;
-    -fx-background-radius: 5;
-}
-
-.table-view .column-header {
-    -fx-background-color: #34495e;
-    -fx-padding: 10 0;
-}
-
-.table-view .column-header .label {
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-}
-
-.table-view .table-row-cell {
-    -fx-background-color: white;
-    -fx-border-color: #ecf0f1;
-    -fx-border-width: 0 0 1 0;
-    -fx-padding: 8 0;
-}
-
-.table-view .table-row-cell:odd {
-    -fx-background-color: #f8f9fa;
-}
-
-.table-view .table-row-cell:selected {
-    -fx-background-color: #3498db;
-}
-
-.table-view .table-cell {
-    -fx-text-fill: #2c3e50 !important;
-    -fx-font-size: 14px;
-}
-
-.table-view .table-row-cell:selected .table-cell {
-    -fx-text-fill: white !important;
-}
-
-.table-view .table-row-cell:hover .table-cell {
-    -fx-text-fill: #2c3e50 !important;
-}
+/* TABELAS - ESTILO MÍNIMO (usa padrões do JavaFX) */
+/* Removido todos os estilos personalizados de tabela */
+/* para usar o comportamento padrão do JavaFX */
 
 /* Efeitos de Transição */
 .button, .menu-button {
