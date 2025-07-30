@@ -4,10 +4,13 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @DatabaseTable(tableName = "vendas")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Venda {
-    @DatabaseField(generatedId = true)
-    private int id;
+    @DatabaseField(id = true)
+    private String id;
     @DatabaseField(canBeNull = false)
     private String clienteCpf;
     @DatabaseField(canBeNull = false)
@@ -23,11 +26,12 @@ public class Venda {
         this.valorTotal = valorTotal;
     }
 
-    public int getId() { return id; }
+    public String getId() { return id; }
     public String getClienteCpf() { return clienteCpf; }
     public Date getData() { return data; }
     public double getValorTotal() { return valorTotal; }
 
+    public void setId(String id) { this.id = id; }
     public void setClienteCpf(String clienteCpf) { this.clienteCpf = clienteCpf; }
     public void setData(Date data) { this.data = data; }
     public void setValorTotal(double valorTotal) { this.valorTotal = valorTotal; }

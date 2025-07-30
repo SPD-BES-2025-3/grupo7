@@ -4,13 +4,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.collections.FXCollections;
+import java.io.IOException;
 import javafx.collections.ObservableList;
+import com.grupo7.petshop.model.Venda;
 import com.grupo7.petshop.model.Cliente;
 import com.grupo7.petshop.model.Produto;
-import com.grupo7.petshop.model.Venda;
-import com.grupo7.petshop.model.DatabaseManager;
-import com.j256.ormlite.dao.Dao;
-import java.sql.SQLException;
+import com.grupo7.petshop.service.ApiService;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.math.BigDecimal;
@@ -18,7 +17,7 @@ import java.math.BigDecimal;
 public class VendaController {
     
     @FXML
-    private ComboBox<String> cmbCliente;
+    private ComboBox<Cliente> cmbCliente;
     
     @FXML
     private ComboBox<String> cmbProduto;
@@ -62,6 +61,10 @@ public class VendaController {
     private TableColumn<Venda, String> colDataVenda;
     @FXML
     private TableColumn<Venda, String> colTotalVenda;
+    @FXML
+    private TableColumn<Venda, String> colFormaPagamento;
+    @FXML
+    private TableColumn<Venda, String> colStatusVenda;
     
     private BigDecimal totalVenda = BigDecimal.ZERO;
     
@@ -69,50 +72,32 @@ public class VendaController {
     
     @FXML
     public void initialize() {
-        configurarComboBoxes();
-        configurarTabelas();
+        carregarClientes();
+        carregarProdutos();
         carregarVendas();
+        configurarTabelas();
         atualizarTotalVenda();
     }
     
-    private void configurarComboBoxes() {
-        // Configurar formas de pagamento
-        ObservableList<String> formasPagamento = FXCollections.observableArrayList(
-            "DINHEIRO", "CARTAO_CREDITO", "CARTAO_DEBITO", "PIX"
-        );
-        cmbFormaPagamento.setItems(formasPagamento);
-
-        // Configurar status
-        ObservableList<String> status = FXCollections.observableArrayList(
-            "PENDENTE", "PAGO", "CANCELADO"
-        );
-        cmbStatus.setItems(status);
-        cmbStatus.setValue("PENDENTE");
-
-        // Carregar clientes do banco
+    private void carregarClientes() {
         try {
-            Dao<Cliente, Integer> clienteDao = DatabaseManager.getClienteDao();
-            List<Cliente> listaClientes = clienteDao.queryForAll();
-            ObservableList<String> clientes = FXCollections.observableArrayList(
-                listaClientes.stream().map(c -> c.getNome() + " (" + c.getCpf() + ")").collect(Collectors.toList())
-            );
-            cmbCliente.setItems(clientes);
-        } catch (SQLException e) {
-            cmbCliente.setItems(FXCollections.observableArrayList());
-            mostrarErro("Erro ao carregar clientes: " + e.getMessage());
+            List<Cliente> clientes = ApiService.getAllClientes();
+            ObservableList<Cliente> observableClientes = FXCollections.observableArrayList(clientes);
+            cmbCliente.setItems(observableClientes);
+        } catch (Exception e) {
+            mostrarMensagem("Erro", "Erro ao carregar clientes: " + e.getMessage());
         }
-
-        // Carregar produtos do banco
+    }
+    
+    private void carregarProdutos() {
         try {
-            Dao<Produto, Integer> produtoDao = DatabaseManager.getProdutoDao();
-            List<Produto> listaProdutos = produtoDao.queryForAll();
-            ObservableList<String> produtos = FXCollections.observableArrayList(
-                listaProdutos.stream().map(Produto::getNome).collect(Collectors.toList())
+            List<Produto> produtos = ApiService.getAllProdutos();
+            ObservableList<String> produtosStr = FXCollections.observableArrayList(
+                produtos.stream().map(Produto::getNome).collect(Collectors.toList())
             );
-            cmbProduto.setItems(produtos);
-        } catch (SQLException e) {
-            cmbProduto.setItems(FXCollections.observableArrayList());
-            mostrarErro("Erro ao carregar produtos: " + e.getMessage());
+            cmbProduto.setItems(produtosStr);
+        } catch (Exception e) {
+            mostrarMensagem("Erro", "Erro ao carregar produtos: " + e.getMessage());
         }
     }
     
@@ -151,12 +136,11 @@ public class VendaController {
     
     private void carregarVendas() {
         try {
-            Dao<Venda, Integer> vendaDao = DatabaseManager.getVendaDao();
-            List<Venda> lista = vendaDao.queryForAll();
-            tabelaVendas.setItems(FXCollections.observableArrayList(lista));
-        } catch (SQLException e) {
-            tabelaVendas.setItems(FXCollections.observableArrayList());
-            mostrarErro("Erro ao carregar vendas: " + e.getMessage());
+            List<Venda> vendas = ApiService.getAllVendas();
+            ObservableList<Venda> observableVendas = FXCollections.observableArrayList(vendas);
+            tabelaVendas.setItems(observableVendas);
+        } catch (Exception e) {
+            mostrarMensagem("Erro", "Erro ao carregar vendas: " + e.getMessage());
         }
     }
     
@@ -173,33 +157,12 @@ public class VendaController {
             limparCamposItem();
         }
     }
-    
+
     @FXML
     public void finalizarVenda() {
-        if (validarVenda()) {
-            try {
-                Dao<com.grupo7.petshop.model.Venda, Integer> vendaDao = com.grupo7.petshop.model.DatabaseManager.getVendaDao();
-                // Extrair dados do formulário
-                String clienteStr = cmbCliente.getValue();
-                String clienteCpf = "";
-                if (clienteStr != null && clienteStr.contains("(") && clienteStr.contains(")")) {
-                    int ini = clienteStr.lastIndexOf('(') + 1;
-                    int fim = clienteStr.lastIndexOf(')');
-                    clienteCpf = clienteStr.substring(ini, fim);
-                }
-                java.util.Date data = new java.util.Date(); // Data atual
-                double valorTotal = totalVenda.doubleValue();
-                com.grupo7.petshop.model.Venda venda = new com.grupo7.petshop.model.Venda(clienteCpf, data, valorTotal);
-                vendaDao.create(venda);
-                mostrarMensagem("Sucesso", "Venda finalizada com sucesso!");
-                limparFormulario();
-                carregarVendas();
-            } catch (Exception e) {
-                mostrarErro("Erro ao salvar venda: " + e.getMessage());
-            }
-        }
+        salvarVenda();
     }
-    
+
     @FXML
     public void limparFormulario() {
         cmbCliente.setValue(null);
@@ -213,23 +176,57 @@ public class VendaController {
         totalVenda = BigDecimal.ZERO;
         atualizarTotalVenda();
     }
-    
+
     @FXML
     public void cancelarVenda() {
         Alert alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle("Confirmar Cancelamento");
         alert.setHeaderText("Cancelar Venda");
         alert.setContentText("Deseja realmente cancelar esta venda?");
-        
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                // TODO: Implementar cancelamento na API
+                Venda vendaSelecionada = tabelaVendas.getSelectionModel().getSelectedItem();
+                if (vendaSelecionada != null) {
+                    try {
+                        ApiService.deleteVenda(String.valueOf(vendaSelecionada.getId()));
+                    } catch (IOException | InterruptedException e) {
+                        mostrarMensagem("Erro", "Erro ao cancelar venda: " + e.getMessage());
+                    }
+                }
                 mostrarMensagem("Sucesso", "Venda cancelada com sucesso!");
                 limparFormulario();
                 carregarVendas();
             }
         });
     }
+    
+    @FXML
+    public void salvarVenda() {
+        if (validarVenda()) {
+            try {
+                // Extrair CPF do cliente selecionado
+                Cliente clienteSelecionado = cmbCliente.getValue();
+                String clienteCpf = "";
+                if (clienteSelecionado != null) {
+                    clienteCpf = clienteSelecionado.getCpf();
+                }
+                
+                // Calcular valor total
+                int quantidade = Integer.parseInt(txtQuantidade.getText());
+                double precoUnitario = Double.parseDouble(txtPrecoUnitario.getText());
+                double valorTotal = quantidade * precoUnitario;
+                
+                Venda venda = new Venda(clienteCpf, new java.util.Date(), valorTotal);
+                ApiService.createVenda(venda);
+                mostrarMensagem("Sucesso", "Venda salva com sucesso!");
+                limparFormulario();
+                carregarVendas();
+            } catch (Exception e) {
+                mostrarMensagem("Erro", "Erro ao salvar venda: " + e.getMessage());
+            }
+        }
+    }
+
     
     private void limparCamposItem() {
         cmbProduto.setValue(null);
