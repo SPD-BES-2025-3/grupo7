@@ -4,11 +4,10 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.collections.FXCollections;
+import java.io.IOException;
 import javafx.collections.ObservableList;
 import com.grupo7.petshop.model.Produto;
-import com.grupo7.petshop.model.DatabaseManager;
-import com.j256.ormlite.dao.Dao;
-import java.sql.SQLException;
+import com.grupo7.petshop.service.ApiService;
 import java.util.List;
 import java.math.BigDecimal;
 
@@ -88,12 +87,11 @@ public class ProdutoController {
     
     private void carregarProdutos() {
         try {
-            Dao<Produto, Integer> produtoDao = DatabaseManager.getProdutoDao();
-            List<Produto> lista = produtoDao.queryForAll();
-            tabelaProdutos.setItems(FXCollections.observableArrayList(lista));
-        } catch (SQLException e) {
-            tabelaProdutos.setItems(FXCollections.observableArrayList());
-            mostrarErro("Erro ao carregar produtos: " + e.getMessage());
+            List<Produto> produtos = ApiService.getAllProdutos();
+            ObservableList<Produto> observableProdutos = FXCollections.observableArrayList(produtos);
+            tabelaProdutos.setItems(observableProdutos);
+        } catch (Exception e) {
+            mostrarMensagem("Erro", "Erro ao carregar produtos: " + e.getMessage());
         }
     }
     
@@ -101,13 +99,14 @@ public class ProdutoController {
     public void salvarProduto() {
         if (validarFormulario()) {
             try {
-                Dao<com.grupo7.petshop.model.Produto, Integer> produtoDao = com.grupo7.petshop.model.DatabaseManager.getProdutoDao();
                 String nome = txtNome.getText().trim();
+                String codigo = txtCodigo.getText().trim();
+                String categoria = cmbCategoria.getValue();
                 String descricao = txtDescricao.getText().trim();
                 double preco = Double.parseDouble(txtPreco.getText().trim());
                 int quantidadeEstoque = Integer.parseInt(txtEstoque.getText().trim());
-                com.grupo7.petshop.model.Produto produto = new com.grupo7.petshop.model.Produto(nome, descricao, preco, quantidadeEstoque);
-                produtoDao.create(produto);
+                Produto produto = new Produto(nome, codigo, categoria, descricao, preco, quantidadeEstoque);
+                ApiService.createProduto(produto);
                 mostrarMensagem("Sucesso", "Produto salvo com sucesso!");
                 limparFormulario();
                 carregarProdutos();
@@ -140,7 +139,14 @@ public class ProdutoController {
         
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                // TODO: Implementar exclusão na API
+                Produto produtoSelecionado = tabelaProdutos.getSelectionModel().getSelectedItem();
+                if (produtoSelecionado != null) {
+                    try {
+    ApiService.deleteProduto(String.valueOf(produtoSelecionado.getId()));
+} catch (IOException | InterruptedException e) {
+    mostrarMensagem("Erro", "Erro ao excluir produto: " + e.getMessage());
+}
+                }
                 mostrarMensagem("Sucesso", "Produto excluído com sucesso!");
                 carregarProdutos();
             }
@@ -151,8 +157,13 @@ public class ProdutoController {
     public void pesquisarProdutos() {
         String termo = txtPesquisa.getText().trim();
         if (!termo.isEmpty()) {
-            // TODO: Implementar pesquisa na API
-            mostrarMensagem("Pesquisa", "Pesquisando por: " + termo);
+            try {
+                List<Produto> produtos = ApiService.buscarProdutosPorNome(termo);
+                ObservableList<Produto> observableProdutos = FXCollections.observableArrayList(produtos);
+                tabelaProdutos.setItems(observableProdutos);
+            } catch (Exception e) {
+                mostrarMensagem("Erro", "Erro ao pesquisar produtos: " + e.getMessage());
+            }
         } else {
             carregarProdutos();
         }
