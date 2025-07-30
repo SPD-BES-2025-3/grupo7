@@ -1,6 +1,8 @@
 package com.grupo7.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.grupo7.api.model.Venda;
 import com.grupo7.api.service.VendaService;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +48,21 @@ public class VendaControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(vendaController).build();
         objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        // Criar itens de venda
+        Venda.ItemVenda item1 = new Venda.ItemVenda();
+        item1.setProdutoId("prod1");
+        item1.setQuantidade(2);
+        item1.setPrecoUnitario(new BigDecimal("50.00"));
+        item1.setSubtotal(new BigDecimal("100.00"));
+
+        Venda.ItemVenda item2 = new Venda.ItemVenda();
+        item2.setProdutoId("prod2");
+        item2.setQuantidade(1);
+        item2.setPrecoUnitario(new BigDecimal("200.00"));
+        item2.setSubtotal(new BigDecimal("200.00"));
 
         venda1 = new Venda();
         venda1.setId("1");
@@ -53,6 +70,7 @@ public class VendaControllerTest {
         venda1.setDataPagamento(LocalDateTime.now());
         venda1.setTotal(new BigDecimal("100.00"));
         venda1.setStatus("CONCLUIDA");
+        venda1.setItens(Arrays.asList(item1));
 
         venda2 = new Venda();
         venda2.setId("2");
@@ -60,6 +78,7 @@ public class VendaControllerTest {
         venda2.setDataPagamento(LocalDateTime.now());
         venda2.setTotal(new BigDecimal("200.00"));
         venda2.setStatus("CANCELADA");
+        venda2.setItens(Arrays.asList(item2));
     }
 
     @Test
@@ -99,14 +118,14 @@ public class VendaControllerTest {
     @Test
     void testGetVendasByClienteId() {
         List<Venda> vendas = Arrays.asList(venda1);
-        when(vendaService.findByClienteId("cli1")).thenReturn(vendas);
+        when(vendaService.findVendasPorCliente("cli1")).thenReturn(vendas);
 
         ResponseEntity<List<Venda>> response = vendaController.getVendasByCliente("cli1");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
         assertEquals("cli1", response.getBody().get(0).getClienteId());
-        verify(vendaService, times(1)).findByClienteId("cli1");
+        verify(vendaService, times(1)).findVendasPorCliente("cli1");
     }
 
     @Test

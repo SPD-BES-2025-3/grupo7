@@ -1,6 +1,8 @@
 package com.grupo7.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.grupo7.api.model.Pet;
 import com.grupo7.api.service.PetService;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +46,8 @@ public class PetControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(petController).build();
         objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         pet1 = new Pet();
         pet1.setId("1");
@@ -103,27 +107,27 @@ public class PetControllerTest {
     @Test
     void testGetPetsByClienteId() {
         List<Pet> pets = Arrays.asList(pet1);
-        when(petService.findByClienteId("cli1")).thenReturn(pets);
+        when(petService.findPetsPorCliente("cli1")).thenReturn(pets);
 
         ResponseEntity<List<Pet>> response = petController.getPetsByCliente("cli1");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
         assertEquals("cli1", response.getBody().get(0).getClienteId());
-        verify(petService, times(1)).findByClienteId("cli1");
+        verify(petService, times(1)).findPetsPorCliente("cli1");
     }
 
     @Test
     void testGetPetsAtivos() {
         List<Pet> petsAtivos = Arrays.asList(pet1);
-        when(petService.findByAtivo(true)).thenReturn(petsAtivos);
+        when(petService.findPetsAtivos()).thenReturn(petsAtivos);
 
         ResponseEntity<List<Pet>> response = petController.getPetsAtivos();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
         assertTrue(response.getBody().get(0).isAtivo());
-        verify(petService, times(1)).findByAtivo(true);
+        verify(petService, times(1)).findPetsAtivos();
     }
 
     @Test

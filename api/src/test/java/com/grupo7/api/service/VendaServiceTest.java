@@ -1,7 +1,10 @@
 package com.grupo7.api.service;
 
 import com.grupo7.api.model.Venda;
+import com.grupo7.api.model.Produto;
 import com.grupo7.api.repository.VendaRepository;
+import com.grupo7.api.service.ProdutoService;
+import com.grupo7.api.service.EventPublisherService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +28,12 @@ public class VendaServiceTest {
     @Mock
     private VendaRepository vendaRepository;
 
+    @Mock
+    private ProdutoService produtoService;
+
+    @Mock
+    private EventPublisherService eventPublisherService;
+
     @InjectMocks
     private VendaService vendaService;
 
@@ -33,12 +42,26 @@ public class VendaServiceTest {
 
     @BeforeEach
     void setUp() {
+        // Criar itens de venda
+        Venda.ItemVenda item1 = new Venda.ItemVenda();
+        item1.setProdutoId("prod1");
+        item1.setQuantidade(2);
+        item1.setPrecoUnitario(new BigDecimal("50.00"));
+        item1.setSubtotal(new BigDecimal("100.00"));
+
+        Venda.ItemVenda item2 = new Venda.ItemVenda();
+        item2.setProdutoId("prod2");
+        item2.setQuantidade(1);
+        item2.setPrecoUnitario(new BigDecimal("200.00"));
+        item2.setSubtotal(new BigDecimal("200.00"));
+
         venda1 = new Venda();
         venda1.setId("1");
         venda1.setClienteId("cli1");
         venda1.setDataPagamento(LocalDateTime.now());
         venda1.setTotal(new BigDecimal("100.00"));
         venda1.setStatus("CONCLUIDA");
+        venda1.setItens(Arrays.asList(item1));
 
         venda2 = new Venda();
         venda2.setId("2");
@@ -46,6 +69,7 @@ public class VendaServiceTest {
         venda2.setDataPagamento(LocalDateTime.now());
         venda2.setTotal(new BigDecimal("200.00"));
         venda2.setStatus("CANCELADA");
+        venda2.setItens(Arrays.asList(item2));
     }
 
     @Test
@@ -98,11 +122,23 @@ public class VendaServiceTest {
 
     @Test
     void testSave() {
+        // Mock do produto
+        Produto produto = new Produto();
+        produto.setId("prod1");
+        produto.setNome("Produto Teste");
+        produto.setPreco(new BigDecimal("50.00"));
+        produto.setEstoque(10);
+        
+        when(produtoService.findById("prod1")).thenReturn(Optional.of(produto));
         when(vendaRepository.save(any(Venda.class))).thenReturn(venda1);
+        doNothing().when(eventPublisherService).publishVendaEvent(any());
+        
         Venda saved = vendaService.save(venda1);
         assertNotNull(saved);
         assertEquals("cli1", saved.getClienteId());
         verify(vendaRepository, times(1)).save(venda1);
+        verify(produtoService, times(1)).findById("prod1");
+        verify(eventPublisherService, times(1)).publishVendaEvent(any());
     }
 
     @Test
