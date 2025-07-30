@@ -2,154 +2,171 @@
 
 Este documento descreve como executar os testes unitários e de integração da API PetShop.
 
-## Estrutura de Testes
+## 📋 Visão Geral
 
-O projeto possui os seguintes tipos de testes:
+A API possui uma cobertura completa de testes implementada com:
+- **JUnit 5** para testes unitários
+- **Mockito** para mock de dependências
+- **Spring Boot Test** para testes de integração
+- **TestRestTemplate** para testes de API
+- **JaCoCo** para relatórios de cobertura
 
-### 1. Testes de Entidades (Model)
-- **Localização**: `src/test/java/com/grupo7/api/model/`
-- **Arquivos**: 
-  - `ClienteTest.java`
-  - `PetTest.java`
-  - `ProdutoTest.java`
-  - `VendaTest.java`
-  - `AgendamentoTest.java`
-  - `UsuarioTest.java`
-- **Status**: ✅ Concluídos
-- **Descrição**: Testam os getters, setters e construtores das entidades
+## 🏗️ Estrutura dos Testes
 
-### 2. Testes de Repositórios (Mockados)
-- **Localização**: `src/test/java/com/grupo7/api/repository/`
-- **Arquivos**:
-  - `ClienteRepositoryTest.java`
-  - `ProdutoRepositoryTest.java`
-- **Status**: ✅ Implementados
-- **Descrição**: Testam as operações de repositório usando mocks
+### Testes Unitários (Mockados)
 
-### 3. Testes de Controladores
-- **Localização**: `src/test/java/com/grupo7/api/controller/`
-- **Arquivos**:
-  - `ClienteControllerTest.java`
-- **Status**: ✅ Implementados
-- **Descrição**: Testam os endpoints REST usando MockMvc
+#### 1. Testes de Modelo (Entidades)
+- ✅ `AgendamentoTest.java`
+- ✅ `ClienteTest.java`
+- ✅ `PetTest.java`
+- ✅ `ProdutoTest.java`
+- ✅ `UsuarioTest.java`
+- ✅ `VendaTest.java`
 
-### 4. Testes de Serviços
-- **Localização**: `src/test/java/com/grupo7/api/service/`
-- **Arquivos**:
-  - `ClienteServiceTest.java`
-- **Status**: ✅ Implementados
-- **Descrição**: Testam a lógica de negócio usando mocks
+#### 2. Testes de Repositório
+- ✅ `AgendamentoRepositoryTest.java`
+- ✅ `ClienteRepositoryTest.java`
+- ✅ `PetRepositoryTest.java`
+- ✅ `ProdutoRepositoryTest.java`
+- ✅ `UsuarioRepositoryTest.java`
+- ✅ `VendaRepositoryTest.java`
 
-### 5. Testes de Integração
-- **Localização**: `src/test/java/com/grupo7/api/integration/`
-- **Arquivos**:
-  - `ClienteIntegrationTest.java`
-- **Status**: ✅ Implementados
-- **Descrição**: Testam a integração completa usando TestRestTemplate
+#### 3. Testes de Serviço
+- ✅ `AgendamentoServiceTest.java`
+- ✅ `ClienteServiceTest.java`
+- ✅ `PetServiceTest.java`
+- ✅ `ProdutoServiceTest.java`
+- ✅ `UsuarioServiceTest.java`
+- ✅ `VendaServiceTest.java`
 
-## Pré-requisitos
+#### 4. Testes de Controlador
+- ✅ `AgendamentoControllerTest.java`
+- ✅ `ClienteControllerTest.java`
+- ✅ `PetControllerTest.java`
+- ✅ `ProdutoControllerTest.java`
+- ✅ `UsuarioControllerTest.java`
+- ✅ `VendaControllerTest.java`
 
-### 1. Dependências
-- Java 17 ou superior
-- Maven 3.6 ou superior
-- MongoDB rodando na porta 27017
-- Redis rodando na porta 6379
+### Testes de Integração
 
-### 2. Configuração do Ambiente
+#### 5. Testes de Integração (TestRestTemplate)
+- ✅ `AgendamentoIntegrationTest.java`
+- ✅ `ClienteIntegrationTest.java`
+- ✅ `PetIntegrationTest.java`
+- ✅ `ProdutoIntegrationTest.java`
+- ✅ `UsuarioIntegrationTest.java`
+- ✅ `VendaIntegrationTest.java`
 
-#### MongoDB
+## 🚀 Como Executar os Testes
+
+### Pré-requisitos
+
+1. **Java 17** instalado
+2. **Maven** instalado
+3. **MongoDB** rodando (para testes de integração)
+4. **Redis** rodando (para testes de integração)
+
+### Verificar Serviços
+
 ```bash
-# Instalar MongoDB (Ubuntu/Debian)
-sudo apt update
-sudo apt install mongodb
-
-# Iniciar MongoDB
-sudo systemctl start mongodb
-sudo systemctl enable mongodb
-
-# Verificar status
+# Verificar se MongoDB está rodando
 sudo systemctl status mongodb
-```
 
-#### Redis
-```bash
-# Instalar Redis (Ubuntu/Debian)
-sudo apt update
-sudo apt install redis-server
-
-# Iniciar Redis
-sudo systemctl start redis-server
-sudo systemctl enable redis-server
-
-# Verificar status
+# Verificar se Redis está rodando
 sudo systemctl status redis-server
+
+# Iniciar serviços se necessário
+sudo systemctl start mongodb
+sudo systemctl start redis-server
 ```
 
-## Como Executar os Testes
+### Executar Testes
 
-### 1. Executar Todos os Testes
+#### Opção 1: Usando o Script Automatizado
+
 ```bash
-# Navegar para o diretório da API
-cd api
+# Executar todos os testes
+./run-tests.sh all
+
+# Executar apenas testes unitários
+./run-tests.sh unit
+
+# Executar apenas testes de integração
+./run-tests.sh integration
+
+# Executar testes com relatório de cobertura
+./run-tests.sh coverage
+
+# Executar testes em modo debug
+./run-tests.sh debug
+
+# Executar testes rápidos (sem integração)
+./run-tests.sh quick
+```
+
+#### Opção 2: Usando Maven Diretamente
+
+```bash
+# Configurar Java 17
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
 # Executar todos os testes
-mvn test
-```
+mvn clean test
 
-### 2. Executar Testes Específicos
+# Executar apenas testes unitários
+mvn test -Dtest="*Test" -Dtest=*Model*,*RepositoryTest,*ControllerTest,*ServiceTest
 
-#### Testes de Entidades
-```bash
-mvn test -Dtest="*Test" -Dtest=*Model*
-```
-
-#### Testes de Repositórios
-```bash
-mvn test -Dtest="*RepositoryTest"
-```
-
-#### Testes de Controladores
-```bash
-mvn test -Dtest="*ControllerTest"
-```
-
-#### Testes de Serviços
-```bash
-mvn test -Dtest="*ServiceTest"
-```
-
-#### Testes de Integração
-```bash
+# Executar apenas testes de integração
 mvn test -Dtest="*IntegrationTest"
-```
 
-### 3. Executar Testes com Cobertura
-```bash
-# Executar testes com relatório de cobertura
+# Executar testes com cobertura
 mvn clean test jacoco:report
 
-# Abrir relatório de cobertura
-open target/site/jacoco/index.html
-```
-
-### 4. Executar Testes em Modo Debug
-```bash
-# Executar com logs detalhados
+# Executar testes em modo debug
 mvn test -Dspring.profiles.active=test -Dlogging.level.com.grupo7.api=DEBUG
 ```
 
-## Configurações de Teste
+## 📊 Relatórios de Cobertura
 
-### Perfil de Teste
-O projeto usa o perfil `test` que carrega as configurações de `application-test.properties`:
+Após executar os testes com cobertura, o relatório JaCoCo estará disponível em:
+```
+target/site/jacoco/index.html
+```
 
-- **MongoDB**: Conecta ao banco `petshop_test`
-- **Redis**: Usa database 1
-- **Logging**: Nível DEBUG para debugging
+Para abrir o relatório:
+```bash
+# No Linux
+xdg-open target/site/jacoco/index.html
 
-### Configurações Específicas
+# Ou abrir manualmente no navegador
+```
 
-#### application-test.properties
+## 🧪 Tipos de Teste
+
+### Testes Unitários
+
+**Características:**
+- Testam componentes isoladamente
+- Usam mocks para dependências externas
+- Execução rápida
+- Não requerem banco de dados
+
+
+### Testes de Integração
+
+**Características:**
+- Testam a integração entre componentes
+- Usam banco de dados real (MongoDB)
+- Testam endpoints da API
+- Execução mais lenta
+
+
+## 🔧 Configuração de Teste
+
+### Arquivo de Configuração
+- `application-test.properties` - Configurações específicas para testes
+
+### Configurações Principais:
 ```properties
 # MongoDB para testes
 spring.data.mongodb.uri=mongodb://localhost:27017/petshop_test
@@ -159,184 +176,143 @@ spring.data.redis.host=localhost
 spring.data.redis.port=6379
 spring.data.redis.database=1
 
-# Logging para testes
+# Logging para debug
 logging.level.com.grupo7.api=DEBUG
 ```
 
-## Estrutura dos Testes
-
-### Padrão AAA (Arrange-Act-Assert)
-
-Todos os testes seguem o padrão AAA:
-
-```java
-@Test
-void testExample() {
-    // Arrange (Given)
-    Cliente cliente = new Cliente("João", "joao@email.com", "(11) 99999-9999", "123.456.789-00");
-    when(repository.save(any())).thenReturn(cliente);
-    
-    // Act (When)
-    Cliente result = service.save(cliente);
-    
-    // Assert (Then)
-    assertNotNull(result);
-    assertEquals("João", result.getNome());
-    verify(repository, times(1)).save(cliente);
-}
-```
-
-### Anotações Utilizadas
-
-#### Testes Unitários
-- `@ExtendWith(MockitoExtension.class)`: Habilita Mockito
-- `@Mock`: Cria mocks
-- `@InjectMocks`: Injeta mocks na classe testada
-- `@BeforeEach`: Setup executado antes de cada teste
-
-#### Testes de Integração
-- `@SpringBootTest`: Carrega o contexto Spring completo
-- `@AutoConfigureWebMvc`: Configura MockMvc
-- `@ActiveProfiles("test")`: Usa o perfil de teste
-- `@LocalServerPort`: Injeta a porta do servidor
-
-## Exemplos de Testes
-
-### Teste de Repositório (Mockado)
-```java
-@Test
-void testFindById() {
-    // Given
-    when(clienteRepository.findById("1")).thenReturn(Optional.of(cliente1));
-    
-    // When
-    Optional<Cliente> result = clienteService.findById("1");
-    
-    // Then
-    assertTrue(result.isPresent());
-    assertEquals("João Silva", result.get().getNome());
-    verify(clienteRepository, times(1)).findById("1");
-}
-```
-
-### Teste de Controlador
-```java
-@Test
-void testGetClienteById() {
-    // Given
-    when(clienteService.findById("1")).thenReturn(Optional.of(cliente1));
-    
-    // When
-    ResponseEntity<Cliente> response = clienteController.getClienteById("1");
-    
-    // Then
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("João Silva", response.getBody().getNome());
-}
-```
-
-### Teste de Integração
-```java
-@Test
-void testCreateAndRetrieveCliente() {
-    // Given
-    Cliente cliente = new Cliente("João", "joao@email.com", "(11) 99999-9999", "123.456.789-00");
-    
-    // When - Create
-    ResponseEntity<Cliente> createResponse = restTemplate.postForEntity(baseUrl, cliente, Cliente.class);
-    
-    // Then - Create
-    assertEquals(HttpStatus.CREATED, createResponse.getStatusCode());
-    
-    // When - Retrieve
-    ResponseEntity<Cliente> getResponse = restTemplate.getForEntity(
-        baseUrl + "/" + createResponse.getBody().getId(), Cliente.class);
-    
-    // Then - Retrieve
-    assertEquals(HttpStatus.OK, getResponse.getStatusCode());
-    assertEquals("João", getResponse.getBody().getNome());
-}
-```
-
-## Troubleshooting
+## 🐛 Troubleshooting
 
 ### Problemas Comuns
 
-#### 1. MongoDB não está rodando
+#### 1. Erro de Java Version
+```
+release version 17 not supported
+```
+**Solução:**
 ```bash
-# Verificar status
-sudo systemctl status mongodb
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+mvn clean test
+```
 
-# Iniciar se necessário
+#### 2. MongoDB não está rodando
+```
+Connection refused
+```
+**Solução:**
+```bash
 sudo systemctl start mongodb
 ```
 
-#### 2. Redis não está rodando
+#### 3. Redis não está rodando
+```
+Connection refused
+```
+**Solução:**
 ```bash
-# Verificar status
-sudo systemctl status redis-server
-
-# Iniciar se necessário
 sudo systemctl start redis-server
 ```
 
-#### 3. Porta já em uso
-```bash
-# Verificar portas em uso
-sudo netstat -tlnp | grep :27017
-sudo netstat -tlnp | grep :6379
-
-# Matar processo se necessário
-sudo kill -9 <PID>
+#### 4. Porta já em uso
 ```
-
-#### 4. Testes falhando por timeout
+Web server failed to start. Port 8080 was already in use.
+```
+**Solução:**
 ```bash
-# Executar com timeout maior
-mvn test -Dspring.test.timeout=30000
+# Encontrar processo usando a porta
+lsof -i :8080
+# Matar o processo
+kill -9 <PID>
 ```
 
 ### Logs de Debug
 
 Para ver logs detalhados durante os testes:
-
 ```bash
-mvn test -Dlogging.level.com.grupo7.api=DEBUG -Dlogging.level.org.springframework.data.mongodb=DEBUG
+mvn test -Dlogging.level.com.grupo7.api=DEBUG
 ```
 
-## Relatórios de Teste
+## 📈 Métricas de Cobertura
 
-### Relatório Maven Surefire
-Após executar os testes, o relatório estará em:
-```
-target/surefire-reports/
-```
+### Cobertura Esperada
+- **Linhas de código:** > 80%
+- **Branches:** > 70%
+- **Métodos:** > 90%
+- **Classes:** > 95%
 
-### Relatório de Cobertura (JaCoCo)
-Para gerar relatório de cobertura:
+### Verificar Cobertura
 ```bash
+# Executar testes com cobertura
 mvn clean test jacoco:report
+
+# Verificar relatório
+open target/site/jacoco/index.html
 ```
 
-O relatório estará em:
+## 🎯 Cenários de Teste
+
+### Testes de Sucesso
+- ✅ Criação de entidades
+- ✅ Busca por ID
+- ✅ Listagem de todos os registros
+- ✅ Atualização de dados
+- ✅ Exclusão de registros
+- ✅ Alteração de status
+
+### Testes de Erro
+- ✅ Dados inválidos
+- ✅ Registros não encontrados
+- ✅ Validações de negócio
+- ✅ Conflitos de dados únicos
+
+### Testes de Integração
+- ✅ Fluxo completo CRUD
+- ✅ Endpoints da API
+- ✅ Respostas HTTP corretas
+- ✅ Validação de JSON
+
+## 📝 Convenções de Nomenclatura
+
+### Arquivos de Teste
+- `*Test.java` - Testes unitários
+- `*IntegrationTest.java` - Testes de integração
+
+### Métodos de Teste
+- `test[Metodo]_[Cenario]` - Ex: `testFindById_Success`
+- `test[Metodo]_[Erro]` - Ex: `testFindById_NotFound`
+
+### Organização
+- Um arquivo de teste por classe
+- Métodos organizados por funcionalidade
+- Setup comum no `@BeforeEach`
+
+## 🔄 CI/CD
+
+### Pipeline de Teste
+```yaml
+# Exemplo para GitHub Actions
+- name: Run Tests
+  run: |
+    export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+    mvn clean test jacoco:report
+
+- name: Upload Coverage
+  uses: codecov/codecov-action@v3
+  with:
+    file: ./target/site/jacoco/jacoco.xml
 ```
-target/site/jacoco/index.html
-```
 
-## Próximos Passos
+## 📚 Recursos Adicionais
 
-### Testes Pendentes
-- [ ] Implementar testes para outros repositórios (Pet, Venda, Agendamento, etc.)
-- [ ] Implementar testes para outros controladores
-- [ ] Implementar testes para outros serviços
-- [ ] Implementar testes de integração para outras entidades
+- [JUnit 5 Documentation](https://junit.org/junit5/docs/current/user-guide/)
+- [Mockito Documentation](https://javadoc.io/doc/org.mockito/mockito-core/latest/org/mockito/Mockito.html)
+- [Spring Boot Test Documentation](https://docs.spring.io/spring-boot/docs/current/reference/html/spring-boot-features.html#boot-features-testing)
+- [JaCoCo Documentation](https://www.jacoco.org/jacoco/trunk/doc/)
 
-### Melhorias Sugeridas
-- [ ] Adicionar testes de performance
-- [ ] Implementar testes de segurança
-- [ ] Adicionar testes de validação de dados
-- [ ] Implementar testes de cenários de erro
+---
 
-## Contato
-
-Para dúvidas sobre os testes, consulte a documentação do projeto ou entre em contato com a equipe de desenvolvimento. 
+**Total de Testes Implementados: 30 arquivos**
+- 6 testes de modelo
+- 6 testes de repositório
+- 6 testes de serviço
+- 6 testes de controlador
+- 6 testes de integração 
