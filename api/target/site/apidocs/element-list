@@ -1,0 +1,11 @@
+com.grupo7.api
+com.grupo7.api.config
+com.grupo7.api.controller
+com.grupo7.api.event
+com.grupo7.api.exception
+com.grupo7.api.integration
+com.grupo7.api.integration.transformer
+com.grupo7.api.listener
+com.grupo7.api.model
+com.grupo7.api.repository
+com.grupo7.api.service
