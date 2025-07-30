@@ -1,6 +1,8 @@
 package com.grupo7.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.grupo7.api.model.Produto;
 import com.grupo7.api.service.ProdutoService;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,6 +47,8 @@ public class ProdutoControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(produtoController).build();
         objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         produto1 = new Produto();
         produto1.setId("1");
@@ -52,7 +56,9 @@ public class ProdutoControllerTest {
         produto1.setDescricao("Ração de alta qualidade para cães");
         produto1.setPreco(new BigDecimal("89.90"));
         produto1.setCategoria("Alimentação");
+        produto1.setCodigo("RACAO001");
         produto1.setEstoque(50);
+        produto1.setMarca("Marca Premium");
         produto1.setAtivo(true);
 
         produto2 = new Produto();
@@ -61,7 +67,9 @@ public class ProdutoControllerTest {
         produto2.setDescricao("Brinquedo interativo para gatos");
         produto2.setPreco(new BigDecimal("29.90"));
         produto2.setCategoria("Brinquedos");
+        produto2.setCodigo("BRINQ001");
         produto2.setEstoque(25);
+        produto2.setMarca("Marca Brinquedos");
         produto2.setAtivo(false);
     }
 
@@ -115,7 +123,7 @@ public class ProdutoControllerTest {
     void testGetProdutosByCategoria() {
         // Given
         List<Produto> produtos = Arrays.asList(produto1);
-        when(produtoService.findByCategoria("Alimentação")).thenReturn(produtos);
+        when(produtoService.findProdutosPorCategoria("Alimentação")).thenReturn(produtos);
 
         // When
         ResponseEntity<List<Produto>> response = produtoController.getProdutosByCategoria("Alimentação");
@@ -124,14 +132,14 @@ public class ProdutoControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
         assertEquals("Alimentação", response.getBody().get(0).getCategoria());
-        verify(produtoService, times(1)).findByCategoria("Alimentação");
+        verify(produtoService, times(1)).findProdutosPorCategoria("Alimentação");
     }
 
     @Test
     void testGetProdutosAtivos() {
         // Given
         List<Produto> produtosAtivos = Arrays.asList(produto1);
-        when(produtoService.findByAtivo(true)).thenReturn(produtosAtivos);
+        when(produtoService.findProdutosAtivos()).thenReturn(produtosAtivos);
 
         // When
         ResponseEntity<List<Produto>> response = produtoController.getProdutosAtivos();
@@ -140,7 +148,7 @@ public class ProdutoControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
         assertTrue(response.getBody().get(0).isAtivo());
-        verify(produtoService, times(1)).findByAtivo(true);
+        verify(produtoService, times(1)).findProdutosAtivos();
     }
 
     @Test
@@ -197,9 +205,13 @@ public class ProdutoControllerTest {
         // Given
         Produto novoProduto = new Produto();
         novoProduto.setNome("Novo Produto");
+        novoProduto.setDescricao("Descrição do produto");
         novoProduto.setPreco(new BigDecimal("15.90"));
         novoProduto.setCategoria("Teste");
+        novoProduto.setCodigo("PROD001");
         novoProduto.setEstoque(10);
+        novoProduto.setMarca("Marca Teste");
+        novoProduto.setAtivo(true);
         
         when(produtoService.save(any(Produto.class))).thenReturn(novoProduto);
 
@@ -221,15 +233,13 @@ public class ProdutoControllerTest {
         produtoInvalido.setNome("");
         produtoInvalido.setPreco(new BigDecimal("-10.00"));
         
-        when(produtoService.save(any(Produto.class))).thenThrow(new RuntimeException("Dados inválidos"));
-
         // When & Then
         mockMvc.perform(post("/produtos")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(produtoInvalido)))
                 .andExpect(status().isBadRequest());
 
-        verify(produtoService, times(1)).save(any(Produto.class));
+        verify(produtoService, times(0)).save(any(Produto.class));
     }
 
     @Test
@@ -237,9 +247,15 @@ public class ProdutoControllerTest {
         // Given
         Produto produtoAtualizado = new Produto();
         produtoAtualizado.setNome("Ração Premium Atualizada");
+        produtoAtualizado.setDescricao("Descrição atualizada");
         produtoAtualizado.setPreco(new BigDecimal("99.90"));
+        produtoAtualizado.setCategoria("Alimentação");
+        produtoAtualizado.setCodigo("RACAO001");
+        produtoAtualizado.setEstoque(50);
+        produtoAtualizado.setMarca("Marca Premium");
+        produtoAtualizado.setAtivo(true);
         
-        when(produtoService.update("1", any(Produto.class))).thenReturn(produtoAtualizado);
+        when(produtoService.update(eq("1"), any(Produto.class))).thenReturn(produtoAtualizado);
 
         // When & Then
         mockMvc.perform(put("/produtos/1")
@@ -249,7 +265,7 @@ public class ProdutoControllerTest {
                 .andExpect(jsonPath("$.nome").value("Ração Premium Atualizada"))
                 .andExpect(jsonPath("$.preco").value(99.90));
 
-        verify(produtoService, times(1)).update("1", any(Produto.class));
+        verify(produtoService, times(1)).update(eq("1"), any(Produto.class));
     }
 
     @Test
@@ -257,8 +273,15 @@ public class ProdutoControllerTest {
         // Given
         Produto produtoAtualizado = new Produto();
         produtoAtualizado.setNome("Produto Atualizado");
+        produtoAtualizado.setDescricao("Descrição do produto");
+        produtoAtualizado.setPreco(new BigDecimal("99.90"));
+        produtoAtualizado.setCategoria("Teste");
+        produtoAtualizado.setCodigo("TEST001");
+        produtoAtualizado.setEstoque(10);
+        produtoAtualizado.setMarca("Marca Teste");
+        produtoAtualizado.setAtivo(true);
         
-        when(produtoService.update("999", any(Produto.class))).thenThrow(new RuntimeException("Produto não encontrado"));
+        when(produtoService.update(eq("999"), any(Produto.class))).thenThrow(new RuntimeException("Produto não encontrado"));
 
         // When & Then
         mockMvc.perform(put("/produtos/999")
@@ -266,12 +289,13 @@ public class ProdutoControllerTest {
                 .content(objectMapper.writeValueAsString(produtoAtualizado)))
                 .andExpect(status().isNotFound());
 
-        verify(produtoService, times(1)).update("999", any(Produto.class));
+        verify(produtoService, times(1)).update(eq("999"), any(Produto.class));
     }
 
     @Test
     void testDeleteProduto() {
         // Given
+        when(produtoService.existsById("1")).thenReturn(true);
         doNothing().when(produtoService).deleteById("1");
 
         // When
@@ -280,18 +304,40 @@ public class ProdutoControllerTest {
         // Then
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         assertNull(response.getBody());
+        verify(produtoService, times(1)).existsById("1");
         verify(produtoService, times(1)).deleteById("1");
+    }
+
+    @Test
+    void testDeleteProduto_NotFound() {
+        // Given
+        when(produtoService.existsById("999")).thenReturn(false);
+
+        // When
+        ResponseEntity<Void> response = produtoController.deleteProduto("999");
+
+        // Then
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertNull(response.getBody());
+        verify(produtoService, times(1)).existsById("999");
+        verify(produtoService, times(0)).deleteById("999");
     }
 
     @Test
     void testAlterarStatusProduto_Success() {
         // Given
+        Produto produtoOriginal = new Produto();
+        produtoOriginal.setId("1");
+        produtoOriginal.setNome("Ração Premium");
+        produtoOriginal.setAtivo(true);
+        
         Produto produtoAtualizado = new Produto();
         produtoAtualizado.setId("1");
         produtoAtualizado.setNome("Ração Premium");
         produtoAtualizado.setAtivo(false);
         
-        when(produtoService.update("1", any(Produto.class))).thenReturn(produtoAtualizado);
+        when(produtoService.findById("1")).thenReturn(Optional.of(produtoOriginal));
+        when(produtoService.save(any(Produto.class))).thenReturn(produtoAtualizado);
 
         // When
         ResponseEntity<Produto> response = produtoController.alterarStatusProduto("1", false);
@@ -299,13 +345,14 @@ public class ProdutoControllerTest {
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertFalse(response.getBody().isAtivo());
-        verify(produtoService, times(1)).update("1", any(Produto.class));
+        verify(produtoService, times(1)).findById("1");
+        verify(produtoService, times(1)).save(any(Produto.class));
     }
 
     @Test
     void testAlterarStatusProduto_NotFound() {
         // Given
-        when(produtoService.update("999", any(Produto.class))).thenThrow(new RuntimeException("Produto não encontrado"));
+        when(produtoService.findById("999")).thenReturn(Optional.empty());
 
         // When
         ResponseEntity<Produto> response = produtoController.alterarStatusProduto("999", false);
@@ -313,7 +360,8 @@ public class ProdutoControllerTest {
         // Then
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNull(response.getBody());
-        verify(produtoService, times(1)).update("999", any(Produto.class));
+        verify(produtoService, times(1)).findById("999");
+        verify(produtoService, times(0)).save(any(Produto.class));
     }
 
     @Test
@@ -324,7 +372,8 @@ public class ProdutoControllerTest {
         produtoAtualizado.setNome("Ração Premium");
         produtoAtualizado.setEstoque(75);
         
-        when(produtoService.update("1", any(Produto.class))).thenReturn(produtoAtualizado);
+        when(produtoService.atualizarEstoque("1", 75)).thenReturn(true);
+        when(produtoService.findById("1")).thenReturn(Optional.of(produtoAtualizado));
 
         // When
         ResponseEntity<Produto> response = produtoController.atualizarEstoque("1", 75);
@@ -332,20 +381,22 @@ public class ProdutoControllerTest {
         // Then
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(75, response.getBody().getEstoque());
-        verify(produtoService, times(1)).update("1", any(Produto.class));
+        verify(produtoService, times(1)).atualizarEstoque("1", 75);
+        verify(produtoService, times(1)).findById("1");
     }
 
     @Test
     void testAtualizarEstoque_NotFound() {
         // Given
-        when(produtoService.update("999", any(Produto.class))).thenThrow(new RuntimeException("Produto não encontrado"));
+        when(produtoService.atualizarEstoque("999", 50)).thenReturn(false);
 
         // When
         ResponseEntity<Produto> response = produtoController.atualizarEstoque("999", 50);
 
         // Then
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertNull(response.getBody());
-        verify(produtoService, times(1)).update("999", any(Produto.class));
+        verify(produtoService, times(1)).atualizarEstoque("999", 50);
+        verify(produtoService, times(0)).findById("999");
     }
 } 

@@ -1,6 +1,8 @@
 package com.grupo7.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.grupo7.api.model.Agendamento;
 import com.grupo7.api.service.AgendamentoService;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,19 +47,23 @@ public class AgendamentoControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(agendamentoController).build();
         objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
         agendamento1 = new Agendamento();
         agendamento1.setId("1");
         agendamento1.setClienteId("cli1");
         agendamento1.setPetId("pet1");
-        agendamento1.setDataHora(LocalDateTime.now());
+        agendamento1.setServico("Banho e Tosa");
+        agendamento1.setDataHora(LocalDateTime.now().plusDays(1));
         agendamento1.setStatus("PENDENTE");
 
         agendamento2 = new Agendamento();
         agendamento2.setId("2");
         agendamento2.setClienteId("cli2");
         agendamento2.setPetId("pet2");
-        agendamento2.setDataHora(LocalDateTime.now());
+        agendamento2.setServico("Consulta Veterinária");
+        agendamento2.setDataHora(LocalDateTime.now().plusDays(2));
         agendamento2.setStatus("CONCLUIDO");
     }
 
@@ -98,14 +104,14 @@ public class AgendamentoControllerTest {
     @Test
     void testGetAgendamentosByClienteId() {
         List<Agendamento> agendamentos = Arrays.asList(agendamento1);
-        when(agendamentoService.findByClienteId("cli1")).thenReturn(agendamentos);
+        when(agendamentoService.findAgendamentosPorCliente("cli1")).thenReturn(agendamentos);
 
         ResponseEntity<List<Agendamento>> response = agendamentoController.getAgendamentosByCliente("cli1");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
         assertEquals("cli1", response.getBody().get(0).getClienteId());
-        verify(agendamentoService, times(1)).findByClienteId("cli1");
+        verify(agendamentoService, times(1)).findAgendamentosPorCliente("cli1");
     }
 
     @Test
