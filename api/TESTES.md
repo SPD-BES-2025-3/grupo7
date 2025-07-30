@@ -140,43 +140,6 @@ mvn test-compile -Dtest="*ControllerTest"
 mvn test-compile -Dtest="*IntegrationTest"
 ```
 
-#### Opção 2: Usando Maven Diretamente
-
-```bash
-# Configurar Java 17
-export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-
-# Executar todos os testes
-mvn clean test
-
-# Executar apenas testes unitários
-mvn test -Dtest="*Test" -Dtest=*Model*,*RepositoryTest,*ControllerTest,*ServiceTest
-
-# Executar apenas testes de integração
-mvn test -Dtest="*IntegrationTest"
-
-# Executar testes com cobertura
-mvn clean test jacoco:report
-
-# Executar testes em modo debug
-mvn test -Dspring.profiles.active=test -Dlogging.level.com.grupo7.api=DEBUG
-```
-
-## 📊 Relatórios de Cobertura
-
-Após executar os testes com cobertura, o relatório JaCoCo estará disponível em:
-```
-target/site/jacoco/index.html
-```
-
-Para abrir o relatório:
-```bash
-# No Linux
-xdg-open target/site/jacoco/index.html
-
-# Ou abrir manualmente no navegador
-```
-
 ## 🧪 Tipos de Teste
 
 ### Testes Unitários
@@ -265,23 +228,6 @@ kill -9 <PID>
 Para ver logs detalhados durante os testes:
 ```bash
 mvn test -Dlogging.level.com.grupo7.api=DEBUG
-```
-
-## 📈 Métricas de Cobertura
-
-### Cobertura Esperada
-- **Linhas de código:** > 80%
-- **Branches:** > 70%
-- **Métodos:** > 90%
-- **Classes:** > 95%
-
-### Verificar Cobertura
-```bash
-# Executar testes com cobertura
-mvn clean test jacoco:report
-
-# Verificar relatório
-open target/site/jacoco/index.html
 ```
 
 ## 🎯 Cenários de Teste
