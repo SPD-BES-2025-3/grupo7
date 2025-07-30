@@ -4,12 +4,11 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.collections.FXCollections;
+import java.io.IOException;
 import javafx.collections.ObservableList;
 import com.grupo7.petshop.model.Pet;
 import com.grupo7.petshop.model.Cliente;
-import com.grupo7.petshop.model.DatabaseManager;
-import com.j256.ormlite.dao.Dao;
-import java.sql.SQLException;
+import com.grupo7.petshop.service.ApiService;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
@@ -38,7 +37,7 @@ public class PetController {
     private TextField txtPeso;
     
     @FXML
-    private ComboBox<String> cmbCliente;
+    private ComboBox<Cliente> cmbCliente;
     
     @FXML
     private TextArea txtObservacoes;
@@ -71,6 +70,7 @@ public class PetController {
         configurarComboBoxes();
         configurarTabela();
         carregarPets();
+        carregarClientes();
     }
     
     private void configurarComboBoxes() {
@@ -85,18 +85,15 @@ public class PetController {
             "Macho", "Fêmea"
         );
         cmbSexo.setItems(sexos);
-
-        // Carregar clientes do banco
+    }
+    
+    private void carregarClientes() {
         try {
-            Dao<Cliente, Integer> clienteDao = DatabaseManager.getClienteDao();
-            List<Cliente> listaClientes = clienteDao.queryForAll();
-            ObservableList<String> clientes = FXCollections.observableArrayList(
-                listaClientes.stream().map(c -> c.getNome() + " (" + c.getCpf() + ")").collect(Collectors.toList())
-            );
-            cmbCliente.setItems(clientes);
-        } catch (SQLException e) {
-            cmbCliente.setItems(FXCollections.observableArrayList());
-            mostrarErro("Erro ao carregar clientes: " + e.getMessage());
+            List<Cliente> clientes = ApiService.getAllClientes();
+            ObservableList<Cliente> observableClientes = FXCollections.observableArrayList(clientes);
+            cmbCliente.setItems(observableClientes);
+        } catch (Exception e) {
+            mostrarMensagem("Erro", "Erro ao carregar clientes: " + e.getMessage());
         }
     }
     
@@ -112,44 +109,33 @@ public class PetController {
     
     private void carregarPets() {
         try {
-            Dao<Pet, Integer> petDao = DatabaseManager.getPetDao();
-            List<Pet> lista = petDao.queryForAll();
-            tabelaPets.setItems(FXCollections.observableArrayList(lista));
-        } catch (SQLException e) {
-            tabelaPets.setItems(FXCollections.observableArrayList());
-            mostrarErro("Erro ao carregar pets: " + e.getMessage());
+            List<Pet> pets = ApiService.getAllPets();
+            ObservableList<Pet> observablePets = FXCollections.observableArrayList(pets);
+            tabelaPets.setItems(observablePets);
+        } catch (Exception e) {
+            mostrarMensagem("Erro", "Erro ao carregar pets: " + e.getMessage());
         }
     }
     
     @FXML
     public void salvarPet() {
-        if (validarFormulario()) {
+        if (validarCampos()) {
             try {
-                Dao<Pet, Integer> petDao = DatabaseManager.getPetDao();
-                // Extrair dados do formulário
-                String nome = txtNome.getText().trim();
-                String especie = cmbEspecie.getValue();
-                String raca = txtRaca.getText().trim();
-                // Calcular idade a partir da data de nascimento
-                int idade = 0;
-                if (dpDataNascimento.getValue() != null) {
-                    idade = LocalDate.now().getYear() - dpDataNascimento.getValue().getYear();
-                }
-                // Extrair CPF do cliente selecionado
-                String clienteStr = cmbCliente.getValue();
-                String donoCpf = "";
-                if (clienteStr != null && clienteStr.contains("(") && clienteStr.contains(")")) {
-                    int ini = clienteStr.lastIndexOf('(') + 1;
-                    int fim = clienteStr.lastIndexOf(')');
-                    donoCpf = clienteStr.substring(ini, fim);
-                }
-                Pet pet = new Pet(nome, especie, raca, idade, donoCpf);
-                petDao.create(pet);
+                Pet pet = new Pet();
+                pet.setNome(txtNome.getText());
+                pet.setEspecie(cmbEspecie.getValue());
+                pet.setRaca(txtRaca.getText());
+                pet.setDataNascimento(dpDataNascimento.getValue().toString());
+                pet.setIdade(LocalDate.now().getYear() - dpDataNascimento.getValue().getYear());
+                
+                pet.setDonoCpf(cmbCliente.getValue().getCpf());
+                
+                ApiService.createPet(pet);
                 mostrarMensagem("Sucesso", "Pet salvo com sucesso!");
                 limparFormulario();
                 carregarPets();
-            } catch (SQLException e) {
-                mostrarErro("Erro ao salvar pet: " + e.getMessage());
+            } catch (Exception e) {
+                mostrarMensagem("Erro", "Erro ao salvar pet: " + e.getMessage());
             }
         }
     }
@@ -177,7 +163,14 @@ public class PetController {
         
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                // TODO: Implementar exclusão na API
+                Pet petSelecionado = tabelaPets.getSelectionModel().getSelectedItem();
+                if (petSelecionado != null) {
+                    try {
+    ApiService.deletePet(String.valueOf(petSelecionado.getId()));
+} catch (IOException | InterruptedException e) {
+    mostrarMensagem("Erro", "Erro ao excluir pet: " + e.getMessage());
+}
+                }
                 mostrarMensagem("Sucesso", "Pet excluído com sucesso!");
                 carregarPets();
             }
@@ -188,14 +181,19 @@ public class PetController {
     public void pesquisarPets() {
         String termo = txtPesquisa.getText().trim();
         if (!termo.isEmpty()) {
-            // TODO: Implementar pesquisa na API
-            mostrarMensagem("Pesquisa", "Pesquisando por: " + termo);
+            try {
+                List<Pet> pets = ApiService.buscarPetsPorNome(termo);
+                ObservableList<Pet> observablePets = FXCollections.observableArrayList(pets);
+                tabelaPets.setItems(observablePets);
+            } catch (Exception e) {
+                mostrarMensagem("Erro", "Erro ao pesquisar pets: " + e.getMessage());
+            }
         } else {
             carregarPets();
         }
     }
     
-    private boolean validarFormulario() {
+    private boolean validarCampos() {
         if (txtNome.getText().trim().isEmpty()) {
             mostrarErro("Nome é obrigatório");
             return false;
