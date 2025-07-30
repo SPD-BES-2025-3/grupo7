@@ -4,13 +4,12 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.collections.FXCollections;
+import java.io.IOException;
 import javafx.collections.ObservableList;
 import com.grupo7.petshop.model.Agendamento;
 import com.grupo7.petshop.model.Cliente;
 import com.grupo7.petshop.model.Pet;
-import com.grupo7.petshop.model.DatabaseManager;
-import com.j256.ormlite.dao.Dao;
-import java.sql.SQLException;
+import com.grupo7.petshop.service.ApiService;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
@@ -19,9 +18,9 @@ import java.math.BigDecimal;
 public class AgendamentoController {
     
     @FXML
-    private ComboBox<String> cmbCliente;
+    private ComboBox<Cliente> cmbCliente;
     @FXML
-    private ComboBox<String> cmbPet;
+    private ComboBox<Pet> cmbPet;
     
     @FXML
     private ComboBox<String> cmbServico;
@@ -70,6 +69,21 @@ public class AgendamentoController {
     }
     
     private void configurarComboBoxes() {
+        // Exibir nomes dos pets no ComboBox
+        cmbPet.setCellFactory(lv -> new ListCell<Pet>() {
+            @Override
+            protected void updateItem(Pet item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? null : item.getNome());
+            }
+        });
+        cmbPet.setButtonCell(new ListCell<Pet>() {
+            @Override
+            protected void updateItem(Pet item, boolean empty) {
+                super.updateItem(item, empty);
+                setText((empty || item == null) ? null : item.getNome());
+            }
+        });
         // Configurar serviços
         ObservableList<String> servicos = FXCollections.observableArrayList(
             "Banho", "Tosa", "Consulta Veterinária", "Vacinação", "Exame", "Cirurgia", "Outros"
@@ -96,30 +110,27 @@ public class AgendamentoController {
         // Configurar filtros
         cmbFiltroStatus.setItems(status);
 
-        // Carregar clientes do banco
+        carregarClientes();
+        carregarPets();
+    }
+    
+    private void carregarClientes() {
         try {
-            Dao<Cliente, Integer> clienteDao = DatabaseManager.getClienteDao();
-            List<Cliente> listaClientes = clienteDao.queryForAll();
-            ObservableList<String> clientes = FXCollections.observableArrayList(
-                listaClientes.stream().map(c -> c.getNome() + " (" + c.getCpf() + ")").collect(Collectors.toList())
-            );
-            cmbCliente.setItems(clientes);
-        } catch (SQLException e) {
-            cmbCliente.setItems(FXCollections.observableArrayList());
-            mostrarErro("Erro ao carregar clientes: " + e.getMessage());
+            List<Cliente> clientes = ApiService.getAllClientes();
+            ObservableList<Cliente> observableClientes = FXCollections.observableArrayList(clientes);
+            cmbCliente.setItems(observableClientes);
+        } catch (Exception e) {
+            mostrarMensagem("Erro", "Erro ao carregar clientes: " + e.getMessage());
         }
-
-        // Carregar pets do banco
+    }
+    
+    private void carregarPets() {
         try {
-            Dao<Pet, Integer> petDao = DatabaseManager.getPetDao();
-            List<Pet> listaPets = petDao.queryForAll();
-            ObservableList<String> pets = FXCollections.observableArrayList(
-                listaPets.stream().map(Pet::getNome).collect(Collectors.toList())
-            );
-            cmbPet.setItems(pets);
-        } catch (SQLException e) {
-            cmbPet.setItems(FXCollections.observableArrayList());
-            mostrarErro("Erro ao carregar pets: " + e.getMessage());
+            List<Pet> pets = ApiService.getAllPets();
+            ObservableList<Pet> observablePets = FXCollections.observableArrayList(pets);
+            cmbPet.setItems(observablePets);
+        } catch (Exception e) {
+            mostrarMensagem("Erro", "Erro ao carregar pets: " + e.getMessage());
         }
     }
     
@@ -134,12 +145,11 @@ public class AgendamentoController {
     
     private void carregarAgendamentos() {
         try {
-            Dao<Agendamento, Integer> agendamentoDao = DatabaseManager.getAgendamentoDao();
-            List<Agendamento> lista = agendamentoDao.queryForAll();
-            tabelaAgendamentos.setItems(FXCollections.observableArrayList(lista));
-        } catch (SQLException e) {
-            tabelaAgendamentos.setItems(FXCollections.observableArrayList());
-            mostrarErro("Erro ao carregar agendamentos: " + e.getMessage());
+            List<Agendamento> agendamentos = ApiService.getAllAgendamentos();
+            ObservableList<Agendamento> observableAgendamentos = FXCollections.observableArrayList(agendamentos);
+            tabelaAgendamentos.setItems(observableAgendamentos);
+        } catch (Exception e) {
+            mostrarMensagem("Erro", "Erro ao carregar agendamentos: " + e.getMessage());
         }
     }
     
@@ -147,37 +157,36 @@ public class AgendamentoController {
     public void salvarAgendamento() {
         if (validarFormulario()) {
             try {
-                Dao<com.grupo7.petshop.model.Agendamento, Integer> agendamentoDao = com.grupo7.petshop.model.DatabaseManager.getAgendamentoDao();
-                // Extrair dados do formulário
-                String clienteStr = cmbCliente.getValue();
-                String clienteCpf = "";
-                if (clienteStr != null && clienteStr.contains("(") && clienteStr.contains(")")) {
-                    int ini = clienteStr.lastIndexOf('(') + 1;
-                    int fim = clienteStr.lastIndexOf(')');
-                    clienteCpf = clienteStr.substring(ini, fim);
+                Agendamento agendamento = new Agendamento();
+                Cliente clienteSelecionado = cmbCliente.getValue();
+                if (clienteSelecionado != null) {
+                    agendamento.setClienteCpf(clienteSelecionado.getCpf());
+                    agendamento.setClienteId(clienteSelecionado.getId());
                 }
-                String petNome = cmbPet.getValue();
+                Pet petSelecionado = cmbPet.getValue();
+                if (petSelecionado != null) {
+                    agendamento.setPetId(petSelecionado.getId());
+                    agendamento.setPetNome(petSelecionado.getNome());
+                }
                 java.time.LocalDate data = dpData.getValue();
                 String horaStr = cmbHora.getValue();
-                java.util.Date dataHora = null;
+                String dataHoraStr = null;
                 if (data != null && horaStr != null) {
                     String[] partes = horaStr.split(":");
                     int hora = Integer.parseInt(partes[0]);
                     int minuto = Integer.parseInt(partes[1]);
                     java.time.LocalDateTime ldt = data.atTime(hora, minuto);
-                    dataHora = java.util.Date.from(ldt.atZone(java.time.ZoneId.systemDefault()).toInstant());
+                    dataHoraStr = ldt.toString(); // ISO-8601
                 }
-                String servico = cmbServico.getValue();
-                String observacoes = txtObservacoes.getText();
-                com.grupo7.petshop.model.Agendamento agendamento = new com.grupo7.petshop.model.Agendamento(
-                    clienteCpf, petNome, dataHora, servico, observacoes
-                );
-                agendamentoDao.create(agendamento);
+                agendamento.setDataHora(dataHoraStr);
+                agendamento.setServico(cmbServico.getValue());
+                agendamento.setObservacoes(txtObservacoes.getText());
+                ApiService.createAgendamento(agendamento);
                 mostrarMensagem("Sucesso", "Agendamento salvo com sucesso!");
                 limparFormulario();
                 carregarAgendamentos();
             } catch (Exception e) {
-                mostrarErro("Erro ao salvar agendamento: " + e.getMessage());
+                mostrarMensagem("Erro", "Erro ao salvar agendamento: " + e.getMessage());
             }
         }
     }
@@ -203,7 +212,14 @@ public class AgendamentoController {
         
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                // TODO: Implementar exclusão na API
+                Agendamento agendamentoSelecionado = tabelaAgendamentos.getSelectionModel().getSelectedItem();
+                if (agendamentoSelecionado != null) {
+                    try {
+    ApiService.deleteAgendamento(String.valueOf(agendamentoSelecionado.getId()));
+} catch (IOException | InterruptedException e) {
+    mostrarMensagem("Erro", "Erro ao excluir agendamento: " + e.getMessage());
+}
+                }
                 mostrarMensagem("Sucesso", "Agendamento excluído com sucesso!");
                 carregarAgendamentos();
             }
@@ -219,7 +235,15 @@ public class AgendamentoController {
         
         alert.showAndWait().ifPresent(response -> {
             if (response == ButtonType.OK) {
-                // TODO: Implementar confirmação na API
+                Agendamento agendamentoSelecionado = tabelaAgendamentos.getSelectionModel().getSelectedItem();
+                if (agendamentoSelecionado != null) {
+                    
+                    try {
+    ApiService.updateAgendamento(String.valueOf(agendamentoSelecionado.getId()), agendamentoSelecionado);
+} catch (IOException | InterruptedException e) {
+    mostrarMensagem("Erro", "Erro ao atualizar agendamento: " + e.getMessage());
+}
+                }
                 mostrarMensagem("Sucesso", "Agendamento confirmado com sucesso!");
                 carregarAgendamentos();
             }
