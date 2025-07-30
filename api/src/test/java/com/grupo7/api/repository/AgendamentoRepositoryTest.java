@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,14 +31,14 @@ public class AgendamentoRepositoryTest {
         agendamento1.setId("1");
         agendamento1.setClienteId("cli1");
         agendamento1.setPetId("pet1");
-        agendamento1.setDataHora(new Date());
+        agendamento1.setDataHora(LocalDateTime.now());
         agendamento1.setStatus("PENDENTE");
 
         agendamento2 = new Agendamento();
         agendamento2.setId("2");
         agendamento2.setClienteId("cli2");
         agendamento2.setPetId("pet2");
-        agendamento2.setDataHora(new Date());
+        agendamento2.setDataHora(LocalDateTime.now());
         agendamento2.setStatus("CONCLUIDO");
     }
 

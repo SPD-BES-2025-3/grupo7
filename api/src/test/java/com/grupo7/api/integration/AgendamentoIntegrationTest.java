@@ -11,7 +11,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,7 +36,7 @@ public class AgendamentoIntegrationTest {
         agendamento = new Agendamento();
         agendamento.setClienteId("cli1");
         agendamento.setPetId("pet1");
-        agendamento.setDataHora(new Date());
+        agendamento.setDataHora(LocalDateTime.now());
         agendamento.setStatus("PENDENTE");
     }
 

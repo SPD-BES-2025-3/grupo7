@@ -10,7 +10,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,15 +36,15 @@ public class VendaServiceTest {
         venda1 = new Venda();
         venda1.setId("1");
         venda1.setClienteId("cli1");
-        venda1.setData(new Date());
-        venda1.setValorTotal(100.0);
+        venda1.setDataPagamento(LocalDateTime.now());
+        venda1.setTotal(new BigDecimal("100.00"));
         venda1.setStatus("CONCLUIDA");
 
         venda2 = new Venda();
         venda2.setId("2");
         venda2.setClienteId("cli2");
-        venda2.setData(new Date());
-        venda2.setValorTotal(200.0);
+        venda2.setDataPagamento(LocalDateTime.now());
+        venda2.setTotal(new BigDecimal("200.00"));
         venda2.setStatus("CANCELADA");
     }
 

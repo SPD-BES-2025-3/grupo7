@@ -31,7 +31,7 @@ public class PetRepositoryTest {
         pet1.setNome("Rex");
         pet1.setEspecie("Cachorro");
         pet1.setRaca("Labrador");
-        pet1.setIdade(5);
+        pet1.setDataNascimento(java.time.LocalDate.now().minusYears(5));
         pet1.setSexo("M");
         pet1.setClienteId("cli1");
         pet1.setAtivo(true);
@@ -41,7 +41,7 @@ public class PetRepositoryTest {
         pet2.setNome("Mimi");
         pet2.setEspecie("Gato");
         pet2.setRaca("Siamês");
-        pet2.setIdade(3);
+        pet2.setDataNascimento(java.time.LocalDate.now().minusYears(3));
         pet2.setSexo("F");
         pet2.setClienteId("cli2");
         pet2.setAtivo(false);

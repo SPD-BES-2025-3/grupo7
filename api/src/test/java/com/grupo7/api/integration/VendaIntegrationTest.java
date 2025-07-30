@@ -11,7 +11,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,8 +36,8 @@ public class VendaIntegrationTest {
         
         venda = new Venda();
         venda.setClienteId("cli1");
-        venda.setData(new Date());
-        venda.setValorTotal(100.0);
+        venda.setDataPagamento(LocalDateTime.now());
+        venda.setTotal(new BigDecimal("100.00"));
         venda.setStatus("PENDENTE");
     }
 
@@ -100,7 +101,7 @@ public class VendaIntegrationTest {
         String vendaId = createResponse.getBody().getId();
 
         // Update venda
-        venda.setValorTotal(150.0);
+        venda.setTotal(new BigDecimal("150.00"));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Venda> requestEntity = new HttpEntity<>(venda, headers);
@@ -112,7 +113,7 @@ public class VendaIntegrationTest {
                 Venda.class
         );
         assertEquals(HttpStatus.OK, updateResponse.getStatusCode());
-        assertEquals(150.0, updateResponse.getBody().getValorTotal());
+        assertEquals(new BigDecimal("150.00"), updateResponse.getBody().getTotal());
     }
 
     @Test
@@ -169,7 +170,7 @@ public class VendaIntegrationTest {
 
     @Test
     void testUpdateVendaNotFound() {
-        venda.setValorTotal(150.0);
+        venda.setTotal(new BigDecimal("150.00"));
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<Venda> requestEntity = new HttpEntity<>(venda, headers);

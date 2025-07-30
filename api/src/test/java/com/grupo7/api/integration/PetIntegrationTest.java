@@ -36,7 +36,7 @@ public class PetIntegrationTest {
         pet.setNome("Rex");
         pet.setEspecie("Cachorro");
         pet.setRaca("Labrador");
-        pet.setIdade(5);
+        pet.setDataNascimento(java.time.LocalDate.now().minusYears(5));
         pet.setSexo("M");
         pet.setClienteId("cli1");
         pet.setAtivo(true);

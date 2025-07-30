@@ -36,7 +36,7 @@ public class UsuarioIntegrationTest {
         usuario.setNome("João");
         usuario.setEmail("joao@email.com");
         usuario.setSenha("senha123");
-        usuario.setRole("ADMIN");
+        usuario.setTelefone("11999999999");
         usuario.setAtivo(true);
     }
 
@@ -167,7 +167,7 @@ public class UsuarioIntegrationTest {
         usuario2.setNome("João 2");
         usuario2.setEmail("joao@email.com"); // Same email
         usuario2.setSenha("senha456");
-        usuario2.setRole("USER");
+        usuario2.setTelefone("11888888888");
         usuario2.setAtivo(true);
 
         ResponseEntity<Usuario> createResponse2 = restTemplate.postForEntity(baseUrl, usuario2, Usuario.class);
