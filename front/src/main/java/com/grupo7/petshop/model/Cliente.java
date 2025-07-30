@@ -3,10 +3,13 @@ package com.grupo7.petshop.model;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @DatabaseTable(tableName = "clientes")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Cliente {
-    @DatabaseField(generatedId = true)
-    private int id;
+    @DatabaseField(id = true)
+    private String id;
     @DatabaseField(canBeNull = false)
     private String nome;
     @DatabaseField(canBeNull = false)
@@ -26,6 +29,7 @@ public class Cliente {
         // ORMLite precisa de um construtor sem argumentos
     }
     
+    // Construtor para criação de novo cliente (POST), não define id
     public Cliente(String nome, String email, String telefone, String cpf, 
                   String endereco, String observacoes, boolean ativo) {
         this.nome = nome;
@@ -36,10 +40,23 @@ public class Cliente {
         this.observacoes = observacoes;
         this.ativo = ativo;
     }
+
+    // Construtor para atualização de cliente (PUT), define id
+    public Cliente(String id, String nome, String email, String telefone, String cpf, 
+                  String endereco, String observacoes, boolean ativo) {
+        this.id = id;
+        this.nome = nome;
+        this.email = email;
+        this.telefone = telefone;
+        this.cpf = cpf;
+        this.endereco = endereco;
+        this.observacoes = observacoes;
+        this.ativo = ativo;
+    }
     
     // Adicione estes métodos:
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
     // Getters
     public String getNome() { return nome; }
@@ -50,6 +67,11 @@ public class Cliente {
     public String getObservacoes() { return observacoes; }
     public boolean isAtivo() { return ativo; }
     public String getStatus() { return ativo ? "Ativo" : "Inativo"; }
+    
+    @Override
+    public String toString() {
+        return nome + " (" + cpf + ")";
+    }
     
     // Setters
     public void setNome(String nome) { this.nome = nome; }

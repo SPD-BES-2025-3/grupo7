@@ -1,5 +1,7 @@
 package com.grupo7.petshop.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
@@ -7,8 +9,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.cell.PropertyValueFactory;
 import com.grupo7.petshop.model.Cliente;
-import com.grupo7.petshop.model.DatabaseManager;
-import com.j256.ormlite.dao.Dao;
+import com.grupo7.petshop.service.ApiService;
+import java.util.List;
 
 public class ClienteController {
     
@@ -51,51 +53,38 @@ public class ClienteController {
     @FXML
     private TableColumn<Cliente, String> colCpf;
     
+
+    
     @FXML
     private TableColumn<Cliente, String> colStatus;
     
     private ObservableList<Cliente> clientes = FXCollections.observableArrayList();
-    
-    private Dao<Cliente, Integer> clienteDao;
     
     private Cliente clienteSelecionado;
     
     @FXML
     public void initialize() {
         try {
-            clienteDao = DatabaseManager.getClienteDao();
-            configurarTabela();
+            colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
+            colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+            colTelefone.setCellValueFactory(new PropertyValueFactory<>("telefone"));
+            colCpf.setCellValueFactory(new PropertyValueFactory<>("cpf"));
+
+            colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
+            
             carregarClientes();
         } catch (Exception e) {
-            e.printStackTrace();
+            mostrarMensagem("Erro", "Erro ao inicializar: " + e.getMessage());
         }
-    }
-    
-    private void configurarTabela() {
-        colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
-        colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
-        colTelefone.setCellValueFactory(new PropertyValueFactory<>("telefone"));
-        colCpf.setCellValueFactory(new PropertyValueFactory<>("cpf"));
-        colStatus.setCellValueFactory(new PropertyValueFactory<>("status"));
-        
-        tabelaClientes.setItems(clientes);
-        
-        // Seleção de linha
-        tabelaClientes.getSelectionModel().selectedItemProperty().addListener(
-            (observable, oldValue, newValue) -> {
-                if (newValue != null) {
-                    carregarClienteParaFormulario(newValue);
-                }
-            }
-        );
     }
     
     private void carregarClientes() {
         try {
-            clientes.clear();
-            clientes.addAll(clienteDao.queryForAll());
+            List<Cliente> clientes = ApiService.getAllClientes();
+            ObservableList<Cliente> observableClientes = FXCollections.observableArrayList(clientes);
+            tabelaClientes.setItems(observableClientes);
         } catch (Exception e) {
-            e.printStackTrace();
+            mostrarMensagem("Erro", "Erro ao carregar clientes: " + e.getMessage());
         }
     }
     
@@ -141,7 +130,21 @@ public class ClienteController {
                         chkAtivo.isSelected()
                     );
                 }
-                clienteDao.createOrUpdate(cliente);
+                if (clienteSelecionado != null) {
+                    // Atualização (PUT) - envia id
+                    ApiService.updateCliente(String.valueOf(clienteSelecionado.getId()), cliente);
+                } else {
+                    // Criação (POST) - não envia id
+                    try {
+                        // Debug: imprimir JSON enviado
+                        ObjectMapper mapper = new ObjectMapper();
+                        String jsonDebug = mapper.writeValueAsString(cliente);
+                        System.out.println("JSON enviado ao criar cliente: " + jsonDebug);
+                    } catch (Exception ex) {
+                        System.out.println("Erro ao serializar cliente para debug: " + ex.getMessage());
+                    }
+                    ApiService.createCliente(cliente);
+                }
                 System.out.println("Cliente salvo no banco!");
                 mostrarMensagem("Sucesso", "Cliente salvo com sucesso!");
                 limparFormulario();
@@ -168,6 +171,31 @@ public class ClienteController {
     }
     
     @FXML
+    public void editarCliente() {
+        Cliente clienteSelecionado = tabelaClientes.getSelectionModel().getSelectedItem();
+        if (clienteSelecionado != null) {
+            try {
+                clienteSelecionado.setNome(txtNome.getText());
+                clienteSelecionado.setEmail(txtEmail.getText());
+                clienteSelecionado.setTelefone(txtTelefone.getText());
+                clienteSelecionado.setCpf(txtCpf.getText());
+                clienteSelecionado.setEndereco(txtEndereco.getText());
+                clienteSelecionado.setObservacoes(txtObservacoes.getText());
+                clienteSelecionado.setAtivo(chkAtivo.isSelected());
+                
+                ApiService.updateCliente(String.valueOf(clienteSelecionado.getId()), clienteSelecionado);
+                mostrarMensagem("Sucesso", "Cliente atualizado com sucesso!");
+                limparFormulario();
+                carregarClientes();
+            } catch (Exception e) {
+                mostrarMensagem("Erro", "Erro ao atualizar cliente: " + e.getMessage());
+            }
+        } else {
+            mostrarMensagem("Aviso", "Selecione um cliente para editar.");
+        }
+    }
+    
+    @FXML
     public void excluirCliente() {
         Cliente clienteSelecionado = tabelaClientes.getSelectionModel().getSelectedItem();
         if (clienteSelecionado != null) {
@@ -179,7 +207,7 @@ public class ClienteController {
             alert.showAndWait().ifPresent(response -> {
                 if (response == ButtonType.OK) {
                     try {
-                        clienteDao.delete(clienteSelecionado);
+                        ApiService.deleteCliente(String.valueOf(clienteSelecionado.getId()));
                         clientes.remove(clienteSelecionado);
                         mostrarMensagem("Sucesso", "Cliente excluído com sucesso!");
                         limparFormulario();
@@ -195,39 +223,62 @@ public class ClienteController {
     
     @FXML
     public void pesquisarClientes() {
-        System.out.println("Método pesquisarClientes chamado!");
-        String termo = txtPesquisa.getText().toLowerCase();
-        try {
-            if (termo.isEmpty()) {
-                clientes.setAll(clienteDao.queryForAll());
-            } else {
-                ObservableList<Cliente> clientesFiltrados = FXCollections.observableArrayList();
-                for (Cliente cliente : clienteDao.queryForAll()) {
-                    if (cliente.getNome().toLowerCase().contains(termo) ||
-                        cliente.getEmail().toLowerCase().contains(termo) ||
-                        cliente.getCpf().contains(termo)) {
-                        clientesFiltrados.add(cliente);
-                    }
-                }
-                clientes.setAll(clientesFiltrados);
+        String termo = txtPesquisa.getText().trim();
+        if (!termo.isEmpty()) {
+            try {
+                List<Cliente> clientes = ApiService.buscarClientesPorNome(termo);
+                ObservableList<Cliente> observableClientes = FXCollections.observableArrayList(clientes);
+                tabelaClientes.setItems(observableClientes);
+            } catch (Exception e) {
+                mostrarMensagem("Erro", "Erro ao pesquisar clientes: " + e.getMessage());
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } else {
+            carregarClientes();
         }
-        tabelaClientes.setItems(clientes);
     }
     
     private boolean validarFormulario() {
-        if (txtNome.getText().trim().isEmpty()) {
+        // Obter valores dos campos
+        String nome = txtNome.getText().trim();
+        String email = txtEmail.getText().trim();
+        String telefone = txtTelefone.getText().trim();
+        String cpf = txtCpf.getText().trim();
+        String endereco = txtEndereco.getText().trim();
+
+        // Validação de campos obrigatórios
+        if (nome.isEmpty()) {
             mostrarMensagem("Erro", "Nome é obrigatório.");
             return false;
         }
-        if (txtEmail.getText().trim().isEmpty()) {
+        if (email.isEmpty()) {
             mostrarMensagem("Erro", "Email é obrigatório.");
             return false;
         }
-        if (txtTelefone.getText().trim().isEmpty()) {
+        // Validação básica de email
+        if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            mostrarMensagem("Erro", "Email inválido.");
+            return false;
+        }
+        if (telefone.isEmpty()) {
             mostrarMensagem("Erro", "Telefone é obrigatório.");
+            return false;
+        }
+        // Formato: (99) 99999-9999
+        if (!telefone.matches("\\(\\d{2}\\) \\d{4,5}-\\d{4}")) {
+            mostrarMensagem("Erro", "Telefone deve estar no formato (99) 99999-9999");
+            return false;
+        }
+        if (cpf.isEmpty()) {
+            mostrarMensagem("Erro", "CPF é obrigatório.");
+            return false;
+        }
+        // Formato: 999.999.999-99
+        if (!cpf.matches("\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}")) {
+            mostrarMensagem("Erro", "CPF deve estar no formato 999.999.999-99");
+            return false;
+        }
+        if (endereco.isEmpty()) {
+            mostrarMensagem("Erro", "Endereço é obrigatório.");
             return false;
         }
         return true;
