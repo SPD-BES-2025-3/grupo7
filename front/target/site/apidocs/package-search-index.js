@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"com.grupo7.petshop"},{"l":"com.grupo7.petshop.controller"},{"l":"com.grupo7.petshop.model"},{"l":"com.grupo7.petshop.service"}];updateSearchResults();
