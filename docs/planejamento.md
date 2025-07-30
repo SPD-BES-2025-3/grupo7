@@ -56,3 +56,19 @@ Desenvolver uma aplicação de gerenciamento para pet shops que permita controle
 - ✅ Protótipos iniciais da interface desktop
 - 🔄 Criação dos diagramas UML (em andamento)
 - 🔄 Testes unitários e documentação dos testes (em andamento)
+
+
+---
+
+## 🔄 Progresso desde a Entrega Anterior
+
+O grupo avançou significativamente na implementação e integração das partes restantes do sistema, conforme planejado:
+
+- Finalização de todas as telas no frontend (FXML + CSS) e sua ligação com os controladores.
+- Backend completo com APIs REST para todas as entidades.
+- Sistema de eventos entre microserviços com Redis funcionando.
+- Containerização das soluções usando Docker e docker-compose.
+- Adição de novos diagramas técnicos para suportar a documentação.
+- Testes manuais realizados com sucesso em todos os fluxos do sistema.
+
+Esses avanços tornam o sistema PetShop Manager uma solução funcional de ponta a ponta, integrando diferentes tecnologias e padrões de projeto de forma robusta.

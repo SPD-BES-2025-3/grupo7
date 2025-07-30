@@ -78,37 +78,37 @@ Desenvolver uma aplicação para gerenciamento de pet shops que integre frontend
 `mvn exec:java -Dexec.mainClass="com.grupo7.petshop.App"`
 ---
 
-## 🧪 Testes
+## ✅ Execução de Testes
 
-### API
+Este projeto utiliza *Maven* para gerenciamento de dependências e execução dos testes automatizados (JUnit).
 
+### Pré-requisitos
 
+- Java 17 ou superior
+- Maven 3.6+
+- (Linux/macOS): permissões de execução no script run-tests.sh
 
-### Unitários
+### 🔧 Executar todos os testes (modo automático)
 
+Navegue até o diretório api e execute o script de testes:
 
-
-### Executar testes:
-
+```bash
+cd api
+chmod +x run-tests.sh  # apenas uma vez, se necessário
+./run-tests.sh
+```
 
 
 ---
 
 ## 📁 Estrutura de Diretórios
 
-```
 grupo7/
-├── api/                       # API REST (Spring Boot + MongoDB)
-│   └── src/main/java/...      # Controllers, Models, Repositories
-│   └── src/test/java/...      # Testes
-├── src/                       # Frontend Desktop (JavaFX)
-│   └── main/java/...          # Views, Controllers, Services
-├── docs/
-│   ├── planejamento.md        # Planejamento do projeto
-│   └── modelagem/             # Diagramas UML (classes, sequência, componentes)
-├── README.md                  # Este arquivo
-└── relatorio_pessoal.md       # Relatório de participação individual
-```
+├── api/          # Backend Spring Boot
+├── front/        # Aplicação JavaFX com SQLite
+├── sqlite/       # Microserviço com MongoDB e Redis
+├── docs/         # Documentação e diagramas
+├── relatorios/   # Relatórios individuais
 
 ---
 
@@ -118,13 +118,26 @@ Para detalhes técnicos, endpoints e exemplos de uso, consulte a [documentação
 
 ---
 
-## 📌 Status Atual (21/07)
+## 📌 Status (21/07)
 
 - [x] Planejamento documentado 
 - [x] Estrutura da API iniciada 
 - [x] Views e entidades iniciais no JavaFX 
 - [ ] Diagramas UML em andamento 
 - [x] Testes unitários em rascunho 
+
+---
+
+## 📈 Avanços Pós-Entrega Inicial
+
+Desde a entrega anterior, realizamos os seguintes progressos:
+
+- Finalização das views JavaFX com navegação e controles completos
+- Integração estável entre frontend local e backend remoto via HTTP
+- Estrutura de eventos com Redis para propagação entre microsserviços
+- Containerização com Docker (backend + MongoDB + Redis)
+- Repositórios e serviços completos com cobertura para todas as entidades
+- Documentação ampliada: diagramas de classe, componentes e sequência
 
 ---
 

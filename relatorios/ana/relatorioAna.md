@@ -20,21 +20,30 @@ Fui designada para atuar como responsável pelas tarefas de **Documentação e P
   - Objetivos
   - Ferramentas utilizadas
   - Divisão de tarefas em Markdown
-- Criação do `README.md` principal com:
+- Criação e atualização do `README.md` principal com:
   - Instruções de instalação e execução
   - Estrutura do projeto
   - Status do desenvolvimento
   - Links e referências úteis
 - Organização inicial do repositório e padronização de diretórios
 
+### 🆕 Atualizações pós-entrega anterior:
+
+- Atualizei o `README.md` para refletir as novas funcionalidades implementadas pelo grupo, como a integração completa entre frontend e backend.
+- Adicionei seções detalhadas sobre o uso do Docker, tecnologias utilizadas e fluxo entre os módulos.
+- Complementação do `planejamento.md` com os marcos atingidos e descrição do progresso técnico da equipe.
+- Inclusão de anotações sobre arquitetura e integração com Redis e MongoDB.
+
 ### 🔗 Commits mais relevantes:
 
-1. Criação da estrutura inicial de documentação (`docs/planejamento.md`), estruturação do `README.md`
+1. Criação da estrutura inicial de documentação (`docs/planejamento.md`), estruturação do `README.md`;
+2. Atualização do `README.md` e `planejamento.md` com novas funcionalidades e diagramas após entrega intermediária.
 
 ### 🚧 Dificuldades encontradas:
 
 - Ajustar a documentação para refletir com clareza as entregas dos colegas em diferentes estágios.
 - Lidar com a ausência temporária de algumas partes (como os diagramas UML ainda não finalizados).
+- Acompanhar mudanças rápidas na estrutura do backend e frontend para manter a documentação atualizada.
 
 ## 3. Contribuição Além do Atribuído
 
@@ -42,6 +51,8 @@ Além das tarefas principais:
 
 - Colaborei com a revisão textual e formatação do `README.md` da API (embora não tenha alterado diretamente o conteúdo).
 - Sugeri a padronização de nomenclaturas de arquivos e pastas para facilitar futuras automações ou geração de documentação.
+- Acompanhei reuniões e milestones para garantir que o planejamento refletisse fielmente o andamento real do projeto.
+- Ajudei na curadoria dos diagramas incluídos na documentação.
 
 ## 4. Considerações Gerais
 
@@ -50,11 +61,12 @@ Além das tarefas principais:
 - Aprimorei a escrita técnica de documentação em Markdown.
 - Compreendi melhor o papel do planejamento em um projeto em equipe, especialmente como ponte entre partes técnicas distintas.
 - Refleti sobre a importância da documentação viva, atualizada em paralelo ao desenvolvimento do código.
+- Aprendi a lidar com ferramentas de integração contínua e uso básico de Docker.
 
 ### 🧩 Trabalhos pendentes:
 
-- Atualizar os testes e status do projeto no `README.md` à medida que novas funcionalidades forem implementadas.
+- Nenhum
 
 ### ✅ Conclusão:
 
-Consegui cumprir com êxito minhas responsabilidades de planejamento e documentação na primeira fase do projeto. A documentação serve atualmente como guia e base sólida para o restante do grupo continuar a implementação de maneira coesa. Continuarei acompanhando as evoluções técnicas e ajudando na manutenção dos arquivos de apoio até a entrega final.
+Consegui cumprir com êxito minhas responsabilidades de planejamento e documentação ao longo do projeto. A documentação serve atualmente como guia e base sólida para o grupo continuar a implementação de maneira coesa. Permanecerei atenta às evoluções técnicas e pronta para realizar ajustes finais na documentação até o encerramento do projeto.
