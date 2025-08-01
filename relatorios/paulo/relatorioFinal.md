@@ -32,13 +32,6 @@ Fui designado como responsável pela implementação de **Testes Unitários e de
 - Configuração com **Spring Boot Test** e **TestRestTemplate**
 - Integração com **MongoDB** de teste
 
-### 🆕 Atualizações e correções:
-
-- Correção de erros de compilação nos testes
-- Ajuste de configurações para 100% de sucesso nos testes unitários
-- Documentação completa no arquivo `TESTES.md`
-- Scripts de execução automatizada
-
 ### 🔗 Commits mais relevantes:
 
 1. **Implementação inicial:** `27db29b` - Implementa testes unitários para Cliente e Pet; configura ambiente de testes com Maven e Java 17
@@ -81,7 +74,6 @@ Além das tarefas principais:
 ### ✅ Conclusão:
 
 Consegui implementar com sucesso uma cobertura completa de testes unitários, atingindo 100% de taxa de sucesso. Os testes de integração foram estruturados adequadamente, mas necessitam de ajustes de configuração para funcionamento completo. O trabalho demonstra uma compreensão sólida dos princípios de teste e uma implementação técnica competente.
----
 
 **Responsável:** Paulo Roberto de Almeida
 **Data:** 31 de Julho de 2025  
